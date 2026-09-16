@@ -218,6 +218,22 @@ encoder or the targets.
   LPLC2 and LC10a by less than ±0.1 Hz, and DNp01 stays at exactly 0.00 Hz.
   Making that pathway work is a change to the neuron model, not to this code.
 
+## The report
+
+`report/` holds a 15-page explainer of the connectome and the simulation, in
+Thai, as **`report/fly-ai-explained-TH.pdf`**, with every figure script that
+builds it. Two experiments in it are worth the read on their own:
+
+* Stimulating LC4 + LPLC2 on the **left** eye drives DNp01 **left** from 0 to
+  47 Hz while DNp01 right stays at exactly 0. Right pathway, right side, no
+  crosstalk, and nothing told the network that LC4 should reach DNp01.
+* Driving the 6,006 photoreceptors instead does nothing downstream. There are
+  **zero** direct synapses from a photoreceptor to LC4, LPLC2, LPLC1 or LC10a,
+  and the signal is absorbed crossing 26,610 optic-lobe neurons. That is why
+  this repo injects straight into the detectors.
+
+See `report/README.md`.
+
 ## Credit
 
 * Connectome: **MaleCNS v1.0**, FlyEM / HHMI Janelia, **CC BY 4.0**. Not

@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>fly.ai — สมองแมลงวันจริงทำงานอย่างไร</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Noto+Serif+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF7;
+  --ink:#16181d;
+  --ink-2:#3a3f48;
+  --muted:#6f6a60;
+  --rule:#e0dbd0;
+  --rule-2:#cdc6b8;
+  --oxide:#B3232B;
+  --blue:#2563eb;
+  --teal:#0d9488;
+  --amber:#d97706;
+  --violet:#7c3aed;
+  --night:#0b0e14;
+  --night-2:#141a26;
+  --night-ink:#e6edf3;
+  --night-muted:#8e9bad;
+}
+
+@page{ size:A4 landscape; margin:0; }
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+body{
+  font-family:'Fraunces','Noto Serif Thai',Georgia,serif;
+  font-variant-numeric:lining-nums tabular-nums;
+  color:var(--ink);
+  background:#8a8578;
+}
+
+.page{
+  position:relative;
+  width:297mm; height:210mm;
+  background:var(--paper);
+  overflow:hidden;
+  page-break-after:always;
+  break-after:page;
+  padding:14mm 18mm 13mm 24mm;
+}
+.page:last-child{ page-break-after:auto; }
+
+/* ---------- persistent rail ---------- */
+.rail{
+  position:absolute; left:0; top:0; bottom:0; width:8mm;
+  border-right:0.4pt solid var(--rule);
+  background:linear-gradient(180deg,#f4f1ea,#faf8f4);
+}
+.rail span{
+  position:absolute; bottom:12mm; left:50%;
+  transform:translateX(-50%) rotate(180deg);
+  writing-mode:vertical-rl;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:6.4pt; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--muted);
+}
+.folio{
+  position:absolute; right:10mm; bottom:8mm;
+  font-family:'IBM Plex Mono',monospace; font-size:7.6pt;
+  color:var(--muted); letter-spacing:.08em;
+}
+.folio b{ color:var(--ink); font-weight:500; }
+
+/* ---------- headings ---------- */
+.kicker{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:7.2pt; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--oxide); margin-bottom:3.5mm;
+}
+h1.sec{
+  font-family:'Fraunces','Noto Serif Thai',serif;
+  font-weight:600; font-size:23pt; line-height:1.14;
+  letter-spacing:-0.01em; margin-bottom:2.5mm;
+}
+h1.sec small{
+  display:block; font-family:'IBM Plex Sans Thai',sans-serif;
+  font-weight:300; font-size:10.5pt; color:var(--muted);
+  letter-spacing:0; line-height:1.5; margin-top:2mm; max-width:200mm;
+}
+h2{
+  font-family:'Fraunces','Noto Serif Thai',serif;
+  font-size:12.5pt; font-weight:600; margin-bottom:2mm; line-height:1.3;
+}
+h3{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:7.4pt; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:2mm; font-weight:500;
+}
+
+/* section numeral */
+.num{
+  position:absolute; right:14mm; top:9mm;
+  font-family:'Fraunces',serif; font-size:52pt; font-weight:300;
+  color:transparent; -webkit-text-stroke:0.6pt var(--rule-2);
+  line-height:1; letter-spacing:-0.03em;
+}
+
+/* ---------- text ---------- */
+p, li{
+  font-family:'Noto Serif Thai','Fraunces',serif;
+  font-size:9.6pt; line-height:1.62; color:var(--ink-2);
+}
+p+p{ margin-top:2.2mm; }
+p.lead{ font-size:11pt; color:var(--ink); line-height:1.6; }
+strong{ color:var(--ink); font-weight:600; }
+em{ font-style:normal; color:var(--oxide); font-weight:600; }
+code, .mono{ font-family:'IBM Plex Mono',monospace; font-size:8.4pt; }
+code{ background:#f1ede4; padding:0.3mm 1mm; border-radius:1mm; color:var(--ink); }
+
+ul{ list-style:none; }
+ul li{ position:relative; padding-left:5mm; margin-bottom:1.6mm; }
+ul li:before{
+  content:''; position:absolute; left:0; top:2.1mm;
+  width:1.8mm; height:1.8mm; background:var(--oxide); border-radius:50%;
+}
+ol{ counter-reset:n; list-style:none; }
+ol li{ position:relative; padding-left:7mm; margin-bottom:2.2mm; counter-increment:n; }
+ol li:before{
+  content:counter(n); position:absolute; left:0; top:0.4mm;
+  font-family:'IBM Plex Mono',monospace; font-size:7.6pt; font-weight:500;
+  color:var(--oxide); border:0.4pt solid var(--rule-2);
+  width:4.6mm; height:4.6mm; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ---------- layout helpers ---------- */
+.cols{ display:grid; grid-template-columns:1fr 1fr; gap:10mm; }
+.cols-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:8mm; }
+.cols-a{ display:grid; grid-template-columns:1.25fr 1fr; gap:10mm; }
+.cols-b{ display:grid; grid-template-columns:1fr 1.35fr; gap:10mm; }
+.stack>*+*{ margin-top:4mm; }
+.rule{ height:0.4pt; background:var(--rule); margin:4mm 0; }
+.hair{ border-top:1.6pt solid var(--ink); width:16mm; margin-bottom:3mm; }
+
+/* ---------- figure ---------- */
+figure{ margin:0; }
+figure img{ width:100%; display:block; }
+figcaption{
+  font-family:'IBM Plex Sans Thai',sans-serif;
+  font-size:7.8pt; line-height:1.5; color:var(--muted);
+  margin-top:2mm; padding-top:1.6mm; border-top:0.4pt solid var(--rule);
+}
+figcaption b{ color:var(--ink); font-weight:500; }
+
+/* ---------- data blocks ---------- */
+.stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; border-top:1.2pt solid var(--ink); border-bottom:0.4pt solid var(--rule); }
+.stat{ padding:3.5mm 4mm 3.5mm 0; border-right:0.4pt solid var(--rule); }
+.stat:last-child{ border-right:0; }
+.stat .v{ font-family:'Fraunces',serif; font-size:19pt; font-weight:400; line-height:1; letter-spacing:-0.02em; }
+.stat .k{ font-family:'IBM Plex Sans Thai',sans-serif; font-size:7.6pt; color:var(--muted); margin-top:1.6mm; line-height:1.4; }
+
+table{ width:100%; border-collapse:collapse; }
+th{
+  font-family:'IBM Plex Mono',monospace; font-size:6.8pt; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  text-align:left; padding:0 3mm 1.8mm 0; border-bottom:1pt solid var(--ink);
+}
+td{
+  font-family:'IBM Plex Sans Thai',sans-serif; font-size:8.4pt; color:var(--ink-2);
+  padding:2mm 3mm 2mm 0; border-bottom:0.4pt solid var(--rule); vertical-align:top;
+}
+td.n{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; color:var(--ink); }
+td.t{ font-family:'IBM Plex Mono',monospace; color:var(--oxide); font-weight:500; }
+tr:last-child td{ border-bottom:0; }
+
+.note{
+  background:#f3efe6; border-left:1.6pt solid var(--oxide);
+  padding:3.5mm 4mm; }
+.note p{ font-size:9pt; }
+.note .h{
+  font-family:'IBM Plex Mono',monospace; font-size:6.8pt; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--oxide); margin-bottom:1.6mm; }
+
+pre{
+  background:var(--night); color:#d5dce6; padding:4mm 5mm;
+  font-family:'IBM Plex Mono',monospace; font-size:7.6pt; line-height:1.65;
+  overflow:hidden; }
+pre .c{ color:#7d8ba1; }
+pre .s{ color:#8fd6b0; }
+pre .k{ color:#f0b37e; }
+
+/* ---------- dark plate pages ---------- */
+.plate{ background:var(--night); color:var(--night-ink); padding:12mm 14mm; }
+.plate .rail{ background:linear-gradient(180deg,#10151f,#0b0e14); border-right-color:#1e2532; }
+.plate .rail span{ color:#5a6779; }
+.plate .kicker{ color:#f0a35e; }
+.plate h1.sec{ color:var(--night-ink); }
+.plate h1.sec small{ color:var(--night-muted); }
+.plate p{ color:#b9c4d2; }
+.plate figcaption{ color:var(--night-muted); border-top-color:#232c3b; }
+.plate figcaption b{ color:var(--night-ink); }
+.plate .folio{ color:#5a6779; }
+.plate .folio b{ color:var(--night-ink); }
+.plate .num{ -webkit-text-stroke-color:#26303f; }
+
+/* ---------- cover ---------- */
+.cover{ background:var(--night); color:var(--night-ink); padding:0; }
+.cover .bleed{
+  position:absolute; inset:0;
+  background:url('fig/fig_cover.png') 62% 50% / cover no-repeat;
+  opacity:.9;
+}
+.cover .veil{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(72% 90% at 8% 55%, rgba(11,14,20,.97) 0%, rgba(11,14,20,.72) 32%, rgba(11,14,20,0) 62%),
+    linear-gradient(180deg, rgba(11,14,20,.8) 0%, rgba(11,14,20,0) 20%, rgba(11,14,20,0) 62%, rgba(11,14,20,.96) 100%);
+}
+.cover .inner{ position:absolute; inset:0; padding:16mm 18mm; display:flex; flex-direction:column; justify-content:space-between; }
+.cover .top{ display:flex; justify-content:space-between; align-items:flex-start; }
+.cover .brandmark{
+  font-family:'IBM Plex Mono',monospace; font-size:7pt; letter-spacing:.3em;
+  text-transform:uppercase; color:#8e9bad; }
+.cover h1{
+  font-family:'Fraunces',serif; font-weight:300; font-size:54pt; line-height:0.94;
+  letter-spacing:-0.035em; color:#fff; }
+.cover h1 b{ font-weight:600; }
+.cover .th{
+  font-family:'Noto Serif Thai',serif; font-weight:400; font-size:17pt;
+  line-height:1.45; color:#dbe3ec; margin-top:6mm; max-width:150mm; }
+.cover .meta{
+  display:grid; grid-template-columns:repeat(4,auto); gap:14mm;
+  border-top:0.4pt solid #2b3444; padding-top:5mm; }
+.cover .meta div .k{ font-family:'IBM Plex Mono',monospace; font-size:6.6pt; letter-spacing:.2em; text-transform:uppercase; color:#6f7c8e; }
+.cover .meta div .v{ font-family:'IBM Plex Sans Thai',sans-serif; font-size:9pt; color:#dbe3ec; margin-top:1.4mm; }
+
+/* toc */
+.toc{ display:grid; grid-template-columns:1fr 1fr; gap:0 14mm; margin-top:4mm; }
+.toc a{ display:flex; align-items:baseline; gap:3mm; text-decoration:none; color:var(--ink-2);
+  padding:2.4mm 0; border-bottom:0.4pt solid var(--rule); }
+.toc .i{ font-family:'IBM Plex Mono',monospace; font-size:7.4pt; color:var(--oxide); width:7mm; }
+.toc .t{ font-family:'IBM Plex Sans Thai',sans-serif; font-size:9pt; flex:1; }
+.t-fixed{ table-layout:fixed; }
+.t-fixed td{ font-size:7.9pt; padding:1.5mm 2.5mm 1.5mm 0; }
+.t-fixed th{ font-size:6.4pt; padding-bottom:1.3mm; }
+.t-fixed td:nth-child(1){ width:17%; }
+.t-fixed td:nth-child(2){ width:13%; }
+.t-fixed td:nth-child(3){ width:13%; }
+.toc .p{ font-family:'IBM Plex Mono',monospace; font-size:7.4pt; color:var(--muted); }
+
+/* density utilities */
+.dense p, .dense li{ font-size:8.9pt; line-height:1.5; }
+.dense td{ font-size:7.9pt; padding:1.5mm 2.5mm 1.5mm 0; }
+.dense th{ font-size:6.4pt; padding-bottom:1.3mm; }
+.dense h2{ font-size:11.5pt; margin-bottom:1.5mm; }
+.dense ul li{ margin-bottom:1.2mm; }
+.dense ol li{ margin-bottom:1.6mm; }
+.dense .note{ padding:2.8mm 3.2mm; }
+.dense .note p{ font-size:8.4pt; }
+.dense .hair{ margin-bottom:2mm; }
+.fig-s img{ width:76%; margin:0 auto; }
+.fig-m img{ width:93%; margin:0 auto; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="page cover">
+  <div class="bleed"></div>
+  <div class="veil"></div>
+  <div class="inner">
+    <div class="top">
+      <div class="brandmark">Technical Read-out &nbsp;·&nbsp; 2026</div>
+      <div class="brandmark">github.com/alextitonis/fly.ai</div>
+    </div>
+    <div>
+      <h1>fly<b>.ai</b></h1>
+      <div class="th">สมองแมลงวันจริง 166,700 เซลล์<br>ทำงานอย่างไร และเราเอามันไปใช้ทำอะไรได้</div>
+    </div>
+    <div class="meta">
+      <div><div class="k">Connectome</div><div class="v">MaleCNS v1.0 — FlyEM / Janelia</div></div>
+      <div><div class="k">Neurons</div><div class="v">166,700</div></div>
+      <div><div class="k">Synapses</div><div class="v">25,582,938</div></div>
+      <div><div class="k">Trained weights</div><div class="v">0</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 สรุป ============ -->
+<section class="page">
+  <div class="rail"><span>Executive summary</span></div>
+  <div class="num">01</div>
+  <div class="kicker">สรุปหนึ่งหน้า</div>
+  <h1 class="sec">มันไม่ใช่โมเดล AI ที่เทรนมา<br>มันคือแผนผังสายไฟของแมลงวันจริง ที่ถูกจับมาเดินเครื่อง
+    <small>ทุกตัวเลขในเอกสารนี้อ่านมาจากไฟล์ข้อมูลของโปรเจกต์โดยตรง และการทดลองในหน้า 09 รันจริงบนเครื่องนี้</small>
+  </h1>
+
+  <div class="stat-row" style="margin:6mm 0 6mm">
+    <div class="stat"><div class="v">166,700</div><div class="k">เซลล์ประสาททั้งระบบ<br>สมอง + ไขสันหลัง</div></div>
+    <div class="stat"><div class="v">25.58 M</div><div class="k">จุดเชื่อมต่อ (synapse)<br>38.4% เป็นสัญญาณยับยั้ง</div></div>
+    <div class="stat"><div class="v">1,314</div><div class="k">เส้นทางออกจากสมอง<br>descending neurons</div></div>
+    <div class="stat"><div class="v">0</div><div class="k">น้ำหนักที่ผ่านการเทรน<br>ในตัวสมอง</div></div>
+  </div>
+
+  <div class="cols-a">
+    <div class="stack">
+      <div>
+        <div class="hair"></div>
+        <h2>แก่นของเรื่อง</h2>
+        <p>นักวิทยาศาสตร์ที่ Janelia (HHMI) ฝานสมองแมลงวันผู้ทั้งตัวด้วยกล้องจุลทรรศน์อิเล็กตรอน แล้วไล่ตามเส้นใยประสาททุกเส้นจนได้แผนที่ว่า <strong>เซลล์ไหนต่อกับเซลล์ไหน และต่อกันกี่จุด</strong> ชุดข้อมูลนั้นชื่อ MaleCNS v1.0 เปิดให้ใช้ฟรีภายใต้สัญญา CC BY 4.0</p>
+        <p>fly.ai เอาแผนที่นั้นมาใส่สมการไฟฟ้าง่าย ๆ ตัวหนึ่ง แล้วปล่อยให้มันทำงาน <strong>ไม่มีการเทรน ไม่มี gradient descent ไม่มี policy</strong> พฤติกรรมทุกอย่างที่โผล่ออกมา มาจากรูปทรงของสายไฟล้วน ๆ</p>
+      </div>
+      <div class="note">
+        <div class="h">ประเด็นที่ต้องเข้าใจให้ตรง</div>
+        <p>สิ่งที่ถูกเทรนในโปรเจกต์นี้มีแค่ <strong>ชั้น linear บาง ๆ ที่ปลายทาง</strong> สำหรับแปลงการยิงสัญญาณเป็นปุ่มกด ส่วนตัวสมอง 25.6 ล้านเส้นเชื่อมนั้นถูกแช่แข็งไว้ ไม่เคยขยับ นี่คือเทคนิคที่เรียกว่า <em>reservoir computing</em></p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div>
+        <div class="hair"></div>
+        <h2>ห้าข้อที่ต้องจำ</h2>
+        <ol>
+          <li><strong>สายไฟคือของจริง</strong> — น้ำหนักแต่ละเส้นคือจำนวน synapse ที่นับได้จากภาพ EM ไม่ได้มาจากการเรียนรู้</li>
+          <li><strong>เซลล์ทุกตัวเหมือนกันหมด</strong> — เป็นจุดเดียวที่สะสมแรงดันแล้วยิง ไม่มีเดนไดรต์ ไม่มีสารสื่อประสาทปรับระดับ</li>
+          <li><strong>มากกว่าครึ่งของสมองคือตา</strong> — 95,501 เซลล์อยู่ในกลีบตา เทียบกับสมองส่วนกลาง 37,229</li>
+          <li><strong>ทางออกแคบมาก</strong> — คำสั่งทุกอย่างต้องบีบผ่าน descending neurons แค่ 1,314 เส้น คิดเป็น 0.79% ของทั้งระบบ</li>
+          <li><strong>มันทำงานได้จริง</strong> — กระตุ้นเซลล์ตรวจจับวัตถุพุ่งเข้าที่ตาซ้าย เซลล์หนีตาย DNp01 ฝั่งซ้ายตอบกลับทันที ฝั่งขวาเงียบสนิท (หน้า 09)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>01</b></div>
+</section>
+
+<!-- ============ 02 ข้อมูลมาจากไหน ============ -->
+<section class="page">
+  <div class="rail"><span>Where the data comes from</span></div>
+  <div class="num">02</div>
+  <div class="kicker">ต้นทาง</div>
+  <h1 class="sec">ข้อมูลมาจากไหน และผ่านอะไรมาบ้าง
+    <small>จากตัวแมลงวันจริง จนกลายเป็นเมทริกซ์ sparse ขนาด 166,700 × 166,700 ที่รันบนโน้ตบุ๊กได้</small>
+  </h1>
+
+  <div class="cols-3" style="margin-top:7mm">
+    <div>
+      <h3>01 — ตัวอย่างจริง</h3>
+      <p>แมลงวันทองผู้หนึ่งตัว ถูกฝานเป็นชั้นบาง ๆ แล้วถ่ายด้วยกล้องจุลทรรศน์อิเล็กตรอน ทีม FlyEM ไล่ตามเส้นใยทุกเส้นและระบุตำแหน่ง synapse ได้ผลลัพธ์เป็น MaleCNS v1.0</p>
+      <div class="rule"></div>
+      <h3>ไฟล์ต้นทาง 3 ตาราง</h3>
+      <p class="mono" style="font-size:7.4pt;line-height:1.7;color:var(--muted)">
+        body-annotations<br>
+        body-neurotransmitters<br>
+        connectome-weights<br>
+        <span style="color:var(--oxide)">min-confidence 0.5</span>
+      </p>
+    </div>
+    <div>
+      <h3>02 — แปลงเป็นน้ำหนัก</h3>
+      <p>จำนวน synapse ดิบถูกใส่เครื่องหมายตามสารสื่อประสาทที่ทำนายไว้ ถ้าเป็น GABA, glutamate หรือ histamine จะได้เครื่องหมายลบ (ยับยั้ง) นอกนั้นเป็นบวก (กระตุ้น)</p>
+      <p>จากนั้นหารด้วยผลรวมขาเข้าของเซลล์ปลายทาง เพื่อให้ทุกเซลล์มีงบ input เท่ากันที่ 1.0</p>
+      <pre style="margin-top:3mm"><span class="c"># build.py</span>
+w = w_raw * sign[pre]
+w /= max(incoming[post], 1.0)</pre>
+    </div>
+    <div>
+      <h3>03 — ไฟล์ที่ได้</h3>
+      <table style="margin-top:1mm">
+        <tr><td class="t">brain.npz</td><td class="n">53 MB</td></tr>
+        <tr><td colspan="2" style="padding-top:0;font-size:7.6pt;color:var(--muted)">รหัสเซลล์ · ชนิดเซลล์ · ซ้าย/ขวา · พิกัด 3 มิติ · กลุ่มอ่านค่า · ผังตา</td></tr>
+        <tr><td class="t">weights.npz</td><td class="n">205 MB</td></tr>
+        <tr><td colspan="2" style="padding-top:0;font-size:7.6pt;color:var(--muted)">เมทริกซ์ sparse CSR แถว = เซลล์ปลายทาง คอลัมน์ = เซลล์ต้นทาง</td></tr>
+      </table>
+      <div class="note" style="margin-top:4mm">
+        <div class="h">ตรวจแล้ว</div>
+        <p>ผลรวมค่าสัมบูรณ์ของแต่ละแถวเท่ากับ 1.000 พอดีใน 99.8% ของเซลล์ ยืนยันว่าการนอร์มัลไลซ์ทำที่ฝั่งขาเข้าจริง</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule" style="margin:6mm 0 5mm"></div>
+
+  <div class="cols-a">
+    <div>
+      <h2>ตัวเลขที่อ่านออกมาได้จากไฟล์</h2>
+      <table style="margin-top:3mm">
+        <tr><td>เซลล์ทั้งหมด</td><td class="n">166,700</td><td style="color:var(--muted);font-size:7.6pt">ชื่อชนิดเซลล์ที่ไม่ซ้ำกัน 11,862 ชนิด</td></tr>
+        <tr><td>ซีกซ้าย / ซีกขวา</td><td class="n">81,823 / 83,935</td><td style="color:var(--muted);font-size:7.6pt">กลางลำตัว 392 · ไม่ระบุ 550</td></tr>
+        <tr><td>มีพิกัด 3 มิติ</td><td class="n">140,638</td><td style="color:var(--muted);font-size:7.6pt">84.4% ของทั้งหมด ที่เหลือส่วนใหญ่เป็นเซลล์รับสัมผัส</td></tr>
+        <tr><td>จุดเชื่อมต่อ</td><td class="n">25,582,938</td><td style="color:var(--muted);font-size:7.6pt">กระตุ้น 15,768,940 · ยับยั้ง 9,813,998</td></tr>
+      </table>
+    </div>
+    <div class="note">
+      <div class="h">สัญญาอนุญาต</div>
+      <p>ข้อมูล connectome เปิดสาธารณะภายใต้ <strong>CC BY 4.0</strong> โดย FlyEM / HHMI Janelia ส่วนโค้ดของ fly.ai เองเป็น <strong>MIT</strong> แปลว่าใช้ต่อยอดเชิงพาณิชย์ได้ ขอแค่ให้เครดิต</p>
+      <p style="margin-top:2.5mm">ดาวน์โหลดสมองสำเร็จรูปได้เลยด้วย <code>flybrain download</code> ราว 260 MB ครั้งเดียวจบ</p>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>02</b></div>
+</section>
+
+<!-- ============ 03 PLATE 3D ============ -->
+<section class="page plate">
+  <div class="rail"><span>Plate I — the whole nervous system</span></div>
+  <div class="kicker">แผ่นภาพ 1</div>
+  <h1 class="sec" style="font-size:19pt">สมองทั้งก้อน วาดจากพิกัดจริงของทุกเซลล์
+    <small>ไม่ใช่ภาพประกอบ ทุกจุดคือเซลล์หนึ่งตัวที่ตำแหน่งจริงซึ่งวัดจากตัวอย่าง EM</small>
+  </h1>
+  <figure style="margin:5mm 0 0">
+    <img src="fig/fig_3d_cns.png" alt="3D render of the MaleCNS connectome">
+    <figcaption><b>ซ้าย</b> มองจากด้านหน้า เห็นกลีบตาสองข้างประกบสมองส่วนกลาง &nbsp;·&nbsp; <b>กลาง</b> ระบบประสาททั้งหมด สมองอยู่ซ้าย ไขสันหลัง (VNC) ที่คุมขาและปีกอยู่ขวา &nbsp;·&nbsp; <b>ขวา</b> มองจากด้านบน จุดสีเหลืองคือ descending neurons 1,314 เส้นที่เป็นทางออกเดียวของสมอง</figcaption>
+  </figure>
+  <div class="cols-3" style="margin-top:6mm">
+    <div><h3 style="color:#8e9bad">อ่านภาพนี้ยังไง</h3><p style="font-size:8.6pt">แต่ละจุดคือเซลล์หนึ่งตัว วาดที่พิกัดที่วัดได้จริงจากตัวอย่าง EM ไม่ได้จัดวางใหม่เพื่อความสวยงาม เซลล์ที่ไม่มีพิกัด 26,062 ตัวจึงไม่ปรากฏในภาพ</p></div>
+    <div><h3 style="color:#8e9bad">ทำไมสองข้างคนละสี</h3><p style="font-size:8.6pt">กลีบตาซ้ายและขวาแยกกันเกือบสมบูรณ์ ข้างละราว 41,000 เซลล์ การแยกนี้สำคัญมาก เพราะเป็นเหตุผลว่าทำไมการกระตุ้นข้างเดียวจึงได้คำตอบข้างเดียว</p></div>
+    <div><h3 style="color:#8e9bad">คอขวดที่มองเห็นได้</h3><p style="font-size:8.6pt">ช่องว่างระหว่างสมองกับ VNC ในภาพกลาง คือจุดที่ทุกคำสั่งต้องบีบผ่านสายเพียง 1,314 เส้น เทียบกับเซลล์ 166,700 ตัวที่อยู่สองฝั่ง</p></div>
+  </div>
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>03</b></div>
+</section>
+
+<!-- ============ 04 สมองแต่ละส่วน ============ -->
+<section class="page">
+  <div class="rail"><span>What the parts are</span></div>
+  <div class="num">04</div>
+  <div class="kicker">กายวิภาค</div>
+  <h1 class="sec">สมองแต่ละส่วนมีอะไรบ้าง
+    <small>fly.ai ไม่ได้แบ่งสมองเป็น “สมองส่วนหน้า/ส่วนหลัง” แต่ใช้ป้าย superclass 27 แบบที่ติดมากับข้อมูล ซึ่งบอกหน้าที่ตรงกว่า</small>
+  </h1>
+
+  <figure class="fig-s" style="margin-top:3.5mm">
+    <img src="fig/fig_composition.png" alt="composition of the 166,700 neurons">
+  </figure>
+
+  <div class="cols dense" style="margin-top:3mm">
+    <div>
+      <table>
+        <tr><th>ส่วน</th><th style="text-align:right">จำนวน</th><th>ทำอะไร</th></tr>
+        <tr><td><strong>กลีบตา</strong><br><span style="font-size:7.4pt;color:var(--muted)">optic lobes</span></td><td class="n" style="text-align:right">95,501</td><td>ประมวลผลภาพชั้นต้น ซ้ายและขวาแยกกันเกือบสมบูรณ์ ข้างละราว 41,000 เซลล์</td></tr>
+        <tr><td><strong>สมองส่วนกลาง</strong><br><span style="font-size:7.4pt;color:var(--muted)">central brain</span></td><td class="n" style="text-align:right">37,229</td><td>รวมข้อมูลทุกประสาทสัมผัส ตัดสินใจ ความจำ การนำทาง</td></tr>
+        <tr><td><strong>ไขสันหลัง</strong><br><span style="font-size:7.4pt;color:var(--muted)">VNC</span></td><td class="n" style="text-align:right">20,429</td><td>วงจรคุมขา 6 ขาและปีก มีเซลล์สั่งกล้ามเนื้อโดยตรง 708 ตัว</td></tr>
+        <tr><td><strong>เซลล์ส่งภาพเข้าสมอง</strong><br><span style="font-size:7.4pt;color:var(--muted)">visual projection</span></td><td class="n" style="text-align:right">9,766</td><td>สายที่ลากจากกลีบตาเข้าสมองกลาง กลุ่ม LC / LPLC อยู่ตรงนี้</td></tr>
+        <tr><td><strong>ขาลง</strong><br><span style="font-size:7.4pt;color:var(--muted)">descending</span></td><td class="n" style="text-align:right">1,332</td><td>ทางออกเดียวจากสมองไปสู่ร่างกาย</td></tr>
+        <tr><td><strong>ขาขึ้น</strong><br><span style="font-size:7.4pt;color:var(--muted)">ascending</span></td><td class="n" style="text-align:right">2,393</td><td>ส่งสถานะร่างกายกลับขึ้นสมอง</td></tr>
+        <tr><td><strong>ระบบประสาทลำไส้</strong><br><span style="font-size:7.4pt;color:var(--muted)">ENS</span></td><td class="n" style="text-align:right">50</td><td>คุมทางเดินอาหาร ไม่ถูกใช้ในเดโมใด ๆ</td></tr>
+      </table>
+    </div>
+    <div class="stack">
+      <div class="note">
+        <div class="h">ข้อสังเกตที่สำคัญที่สุดในหน้านี้</div>
+        <p><strong>57% ของสมองแมลงวันคือระบบการมองเห็น</strong> (กลีบตา + สายส่งภาพ) ส่วนที่เรามักเรียกว่า “คิด” มีแค่ 37,229 เซลล์</p>
+        <p style="margin-top:2.5mm">นี่คือเหตุผลว่าทำไมเดโมทุกตัวของ fly.ai จึงเป็นงานที่ป้อนภาพเข้าไป ถ้าจะใช้สมองนี้กับงานที่ไม่ใช่การมองเห็น เท่ากับทิ้งเนื้อสมองไปครึ่งหนึ่ง</p>
+      </div>
+      <div>
+        <div class="hair"></div>
+        <h2>เซลล์ตรวจจับ 4 ชนิดที่ถูกใช้จริง</h2>
+        <table style="margin-top:2.5mm">
+          <tr><th>ชนิด</th><th style="text-align:right">จำนวน</th><th>ตอบสนองต่อ</th></tr>
+          <tr><td class="t">LPLC2</td><td class="n" style="text-align:right">185</td><td>วัตถุขยายตัว = กำลังพุ่งเข้าหา</td></tr>
+          <tr><td class="t">LC4</td><td class="n" style="text-align:right">126</td><td>ภัยคุกคามที่มาเร็วและใกล้</td></tr>
+          <tr><td class="t">LPLC1</td><td class="n" style="text-align:right">134</td><td>วัตถุเล็กที่เข้าใกล้ เช่น กระสุน</td></tr>
+          <tr><td class="t">LC10a</td><td class="n" style="text-align:right">275</td><td>ตามเป้าหมายที่เคลื่อนที่ ใช้ตอนไล่จีบตัวเมีย</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>04</b></div>
+</section>
+
+<!-- ============ 05 หนึ่งเซลล์ ============ -->
+<section class="page">
+  <div class="rail"><span>One neuron</span></div>
+  <div class="num">05</div>
+  <div class="kicker">กลไกระดับเซลล์</div>
+  <h1 class="sec">เซลล์หนึ่งตัวทำงานอย่างไร
+    <small>ทั้งสมองใช้สมการเดียวกันนี้กับทุกเซลล์พร้อมกัน 50 ครั้งต่อวินาที โมเดลชื่อ leaky integrate-and-fire</small>
+  </h1>
+
+  <figure style="width:70%;margin:2mm auto 0">
+    <img src="fig/fig_lif.png" alt="leaky integrate-and-fire dynamics">
+  </figure>
+
+  <div class="cols-b dense" style="margin-top:3mm">
+    <div>
+      <div class="hair"></div>
+      <h2>อ่านสมการทีละก้อน</h2>
+      <p><code>e^(−dt/τ)·v</code> &nbsp;— แรงดันเดิมรั่วทิ้งไปเรื่อย ๆ ที่ dt 20 ms และ τ 100 ms เหลือ 81.9% ของก้าวก่อน ถ้าไม่มีอะไรเข้ามา มันจะค่อย ๆ ลืม</p>
+      <p><code>gain·W·s</code> &nbsp;— รับสัญญาณจากเพื่อนที่ยิงในก้าวที่แล้ว <code>W</code> คือสายไฟจริง <code>s</code> คือเวกเตอร์ 0/1 ว่าใครยิงบ้าง</p>
+      <p><code>tonic + noise</code> &nbsp;— แรงดันพื้นฐานคงที่ บวกโอกาส 1.2 Hz ที่จะได้แรงดันแถม 0.22 สัญญาณรบกวนนี้คือสิ่งเดียวที่ทำให้แมลงวันสองตัวซึ่งมีสายไฟเหมือนกันเป๊ะ ทำตัวไม่เหมือนกัน</p>
+      <p style="margin-top:2.5mm">พอ <code>v ≥ 1.0</code> เซลล์ยิงหนึ่งครั้งแล้วรีเซ็ตเป็นศูนย์ อัตราการยิงสูงสุดจึงเท่ากับ 50 Hz พอดี เพราะยิงได้มากที่สุดก้าวละครั้ง</p>
+    </div>
+    <div>
+      <div class="hair"></div>
+      <h2>ค่าคงที่ทั้งหมด</h2>
+      <p style="font-size:8.2pt;color:var(--muted);margin-bottom:2mm">ทีมผู้พัฒนาระบุตรง ๆ ว่าค่าพวกนี้ <em>ตั้งด้วยมือ ไม่ได้วัดจากแมลงวันจริง</em></p>
+      <table>
+        <tr><th>ค่า</th><th>ตั้งไว้</th><th>ความหมาย</th></tr>
+        <tr><td class="t">dt</td><td class="n">0.020 s</td><td>หนึ่งก้าว = 20 ms จึงได้ 50 ก้าว/วินาที</td></tr>
+        <tr><td class="t">tau</td><td class="n">0.100 s</td><td>ค่าคงที่การรั่วของเยื่อหุ้มเซลล์</td></tr>
+        <tr><td class="t">gain</td><td class="n">3.0</td><td>ตัวคูณสัญญาณที่รับจากเพื่อน</td></tr>
+        <tr><td class="t">tonic</td><td class="n">0.14</td><td>แรงดันพื้นฐาน ปรับอัตโนมัติถ้าเปลี่ยน dt</td></tr>
+        <tr><td class="t">noise_hz / amp</td><td class="n">1.2 / 0.22</td><td>ความถี่และขนาดของแรงดันสุ่ม</td></tr>
+        <tr><td class="t">eye_gain</td><td class="n">0.62</td><td>ตัวคูณสัญญาณจากตา</td></tr>
+        <tr><td class="t">threshold</td><td class="n">1.0</td><td>ถึงเมื่อไหร่ ยิงเมื่อนั้น แล้วรีเซ็ตเป็น 0</td></tr>
+      </table>
+      <p style="margin-top:2.5mm;font-size:8pt">คู่ <code>tonic 0.14 / gain 3.0</code> ถูกเลือกมาเพราะทำให้ descending neurons เงียบตอนพัก แต่สัญญาณจาก LC4 ยังวิ่งทะลุถึงได้ ถ้าใช้ <code>tonic 0.18 / gain 1.5</code> ทั้งเครือข่ายจะจอดค้างที่ระดับ threshold พอดีและยิงรัวตลอดเวลา</p>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>05</b></div>
+</section>
+
+<!-- ============ 06 สายไฟ ============ -->
+<section class="page">
+  <div class="rail"><span>The wiring</span></div>
+  <div class="num">06</div>
+  <div class="kicker">โครงสร้างเครือข่าย</div>
+  <h1 class="sec">สายไฟหน้าตาเป็นอย่างไร
+    <small>สามกราฟนี้คำนวณสดจากไฟล์ weights.npz ทั้ง 25,582,938 เส้น</small>
+  </h1>
+
+  <figure style="margin-top:5mm">
+    <img src="fig/fig_stats.png" alt="connectivity statistics">
+  </figure>
+
+  <div class="cols-3" style="margin-top:6mm">
+    <div>
+      <div class="hair"></div>
+      <h2>ไม่มีเซลล์ไหนสั่งการได้คนเดียว</h2>
+      <p>น้ำหนักกลางอยู่ที่ <strong>0.0024</strong> ขณะที่เซลล์ต้องสะสมให้ถึง 1.0 ถึงจะยิง แปลว่าต้องมีเพื่อนหลายร้อยตัวเห็นตรงกันในเวลาไล่เลี่ยกัน สัญญาณเดี่ยว ๆ ไม่มีทางผลักใครให้ยิงได้</p>
+    </div>
+    <div>
+      <div class="hair"></div>
+      <h2>การกระจายแบบหางยาว</h2>
+      <p>เซลล์ทั่วไปมีเพื่อนขาเข้า 112 ตัว ขาออก 98 ตัว แต่ฮับที่ใหญ่ที่สุดคือ <code>CT1</code> มีขาออกถึง <strong>11,526</strong> เส้น เซลล์ประเภทนี้ทำหน้าที่คุมระดับสัญญาณรวมของทั้งกลีบตา</p>
+    </div>
+    <div>
+      <div class="hair"></div>
+      <h2>สัญญาณยับยั้งคือเสียงข้างมากที่ถูกลืม</h2>
+      <p><strong>38.4%</strong> ของเส้นเชื่อมมีเครื่องหมายลบ นี่คือเหตุผลที่เครือข่ายไม่ระเบิดเป็นไฟลุกทั้งก้อน แต่ก็เป็นสาเหตุที่การกระตุ้นแรง ๆ มักถูกกลบจนไม่เหลืออะไรที่ปลายทาง</p>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:6mm">
+    <div class="h">ข้อควรระวังเวลาอ่านตัวเลขนี้</div>
+    <p>การนอร์มัลไลซ์ทำให้ “งบขาเข้า” ของทุกเซลล์เท่ากันที่ 1.0 ซึ่งสะดวกสำหรับการจำลอง แต่ไม่ใช่ความจริงทางชีววิทยา เซลล์จริงมีขนาด ความต้านทาน และความไวต่างกันมาก โมเดลนี้ตัดทั้งหมดนั้นทิ้งเพื่อแลกกับความเร็ว</p>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>06</b></div>
+</section>
+
+<!-- ============ 07 PIPELINE ============ -->
+<section class="page">
+  <div class="rail"><span>Full architecture</span></div>
+  <div class="num">07</div>
+  <div class="kicker">โครงสร้างการทำงานทั้งหมด</div>
+  <h1 class="sec">หนึ่งก้าวของ fly.ai ทำอะไรบ้าง
+    <small>วนซ้ำแบบนี้ 50 ครั้งต่อวินาที ตราบเท่าที่เกมหรือโลกจำลองยังเดินอยู่</small>
+  </h1>
+  <figure style="margin-top:4mm">
+    <img src="fig/fig_pipeline.png" alt="fly.ai architecture">
+  </figure>
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>07</b></div>
+</section>
+
+<!-- ============ 08 encoder + decoder ============ -->
+<section class="page">
+  <div class="rail"><span>In and out</span></div>
+  <div class="num">08</div>
+  <div class="kicker">ทางเข้าและทางออก</div>
+  <h1 class="sec">มนุษย์เขียนอะไรเองบ้าง
+    <small>มีแค่สองจุดเท่านั้น คือจุดที่แปลงโลกเป็นแรงดัน และจุดที่แปลงการยิงสัญญาณเป็นคำสั่ง</small>
+  </h1>
+
+  <div class="cols" style="margin-top:6mm">
+    <div class="stack">
+      <div>
+        <div class="hair"></div>
+        <h2>ทางเข้า — encoder</h2>
+        <p>มีสองเส้นทางให้เลือก</p>
+        <p><strong>ก. ผ่านตาจริง</strong> — ภาพถูกย่อเป็นแถบพาโนรามา 1 มิติ ฉายลงบนเซลล์รับแสง <strong>6,006</strong> ตัว แต่ละตัวมีค่ามุม azimuth ตั้งแต่ −1 (ซ้ายสุด) ถึง +1 (ขวาสุด) เรียงตามตำแหน่งจริงในตา</p>
+        <p><strong>ข. ลัดเข้าเซลล์ตรวจจับโดยตรง</strong> — ข้ามชั้นประมวลผลภาพไปเลย ยิงแรงดันเข้า LC4, LPLC2, LPLC1, LC10a ตรง ๆ ตามสิ่งที่เกิดขึ้นในเกม วิธีนี้คือวิธีที่เดโมทุกตัวใช้จริง เพราะเส้นทางผ่าน lamina จะจางหายในโมเดลแบบ spiking</p>
+      </div>
+      <div>
+        <h3>ค่าแปลงในทางที่สอง</h3>
+        <table>
+          <tr><td class="t">loom_gain</td><td class="n">10.0</td><td style="font-size:7.8pt">อัตราการขยายของวัตถุ → แรงดัน</td></tr>
+          <tr><td class="t">shot_gain</td><td class="n">10.0</td><td style="font-size:7.8pt">กระสุนที่โตขึ้น → แรงดัน</td></tr>
+          <tr><td class="t">chase_base</td><td class="n">0.6</td><td style="font-size:7.8pt">แรงดันพื้นตอนเห็นเป้า</td></tr>
+          <tr><td class="t">chase_gain</td><td class="n">0.2</td><td style="font-size:7.8pt">บวกเพิ่มตามขนาดเป้า</td></tr>
+          <tr><td class="t">threat_max</td><td class="n">0.8</td><td style="font-size:7.8pt">เพดานสัญญาณภัยคุกคาม</td></tr>
+          <tr><td class="t">cap</td><td class="n">0.8</td><td style="font-size:7.8pt">เพดานแรงดันต่อเฟรม</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div>
+        <div class="hair"></div>
+        <h2>ทางออก — descending &amp; decoder</h2>
+        <p>สมองแมลงวันคุยกับร่างกายผ่าน descending neurons เท่านั้น มีทั้งหมด <strong>1,314</strong> เส้น หรือ 0.79% ของเครือข่าย นี่คือคอขวดที่แคบที่สุดของทั้งระบบ และเป็นเหตุผลว่าทำไมการอ่านค่าออกมาจึงยาก</p>
+        <p>fly.ai มีวิธีอ่านสองแบบ</p>
+        <p><strong>แบบเขียนมือ</strong> — เลือกเซลล์ที่รู้หน้าที่แน่ชัด 12 ตัว ตั้ง threshold บนอัตราการยิง แล้วแมปเป็นปุ่ม 6 ปุ่ม ตรงไปตรงมาและไม่ต้องเทรน</p>
+        <p><strong>แบบเทรน</strong> — คลาส <code>flybrain.Readout</code> เก็บร่องรอยการยิงของ descending neurons ทั้ง 1,314 เส้น ลดมิติด้วย PCA แล้ว fit ridge (ค่าต่อเนื่อง) หรือ logistic (ใช่/ไม่ใช่) โดยเลือกอันดับและค่า L2 ด้วย cross-validation</p>
+      </div>
+      <div class="note">
+        <div class="h">นี่แหละคือ reservoir computing</div>
+        <p>สมองทำหน้าที่เป็นอ่างเก็บสัญญาณที่ซับซ้อนและแช่แข็ง ส่วนที่เรียนรู้คือชั้น linear บาง ๆ ที่อ่านจากอ่างนั้น ข้อดีคือเทรนเร็วมากและไม่มีทางทำให้สมองพัง ข้อเสียคือถ้าอ่างไม่มีข้อมูลที่ต้องการ ต่อให้ readout ดีแค่ไหนก็อ่านไม่เจอ</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>08</b></div>
+</section>
+
+<!-- ============ 09 decoder table ============ -->
+<section class="page">
+  <div class="rail"><span>The 12 neurons</span></div>
+  <div class="num">09</div>
+  <div class="kicker">ตัวถอดรหัสแบบเขียนมือ</div>
+  <h1 class="sec">คำสั่งทั้งหมดอ่านจากเซลล์แค่ 12 ตัว
+    <small>ชื่อทั้งหกนี้ไม่ได้ถูกเลือกมามั่ว ๆ ทุกตัวมีงานวิจัยรองรับว่าทำหน้าที่นั้นจริงในแมลงวันเป็น ๆ</small>
+  </h1>
+
+  <figure style="margin-top:4mm">
+    <img src="fig/fig_decoder.png" alt="hand-coded decoder map">
+  </figure>
+
+  <div class="cols-a" style="margin-top:4mm">
+    <div>
+      <div class="hair"></div>
+      <h2>ทำไมเรื่องนี้ถึงน่าทึ่ง</h2>
+      <p>ไฟล์ <code>brain.npz</code> เก็บดัชนีของเซลล์เหล่านี้ไว้ตรง ๆ ในชื่อ <code>group_forward_L</code>, <code>group_steer_R</code> และอื่น ๆ เมื่อไล่ดัชนีกลับไปหาชนิดเซลล์ จะได้ชื่อที่ตรงกับวรรณกรรมประสาทวิทยาทั้งหมด</p>
+      <p><code>DNp01</code> คือ giant fiber เส้นใยยักษ์ที่มีชื่อเสียงที่สุดในสรีรวิทยาแมลง เป็นตัวสั่งกระโดดหนีเมื่อมีอะไรพุ่งเข้าหา &nbsp;·&nbsp; <code>MDN</code> คือ moonwalker descending neuron ที่ถูกตั้งชื่อตามการทำให้แมลงวันเดินถอยหลัง &nbsp;·&nbsp; <code>pIP10</code> คือเซลล์สั่งร้องเพลงเกี้ยวพาราสี</p>
+    </div>
+    <div class="note">
+      <div class="h">จุดที่ต้องซื่อสัตย์</div>
+      <p>การจับคู่ “pIP10 = เตะ” หรือ “DNg11 = ต่อย” เป็นการตัดสินใจของมนุษย์ ไม่ใช่ของแมลงวัน แมลงวันไม่มีเซลล์ที่แปลว่า “ต่อย” เพราะมันไม่ต่อย สิ่งที่โปรเจกต์ทำคือหยิบคำสั่งมอเตอร์ที่ใกล้เคียงที่สุดมาใช้แทน</p>
+      <p style="margin-top:2.5mm">ยิ่งงานปลายทางห่างจากพฤติกรรมธรรมชาติของแมลงวันเท่าไหร่ การจับคู่แบบนี้ก็ยิ่งเป็นการเดามากขึ้นเท่านั้น</p>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>09</b></div>
+</section>
+
+<!-- ============ 10 PLATE pathway ============ -->
+<section class="page plate">
+  <div class="rail"><span>Plate II — the pathway</span></div>
+  <div class="kicker">แผ่นภาพ 2</div>
+  <h1 class="sec" style="font-size:19pt">เส้นทางที่เดโมทุกตัวเดินผ่าน
+    <small>ตา → เซลล์ตรวจจับในกลีบตา → descending neuron → เซลล์สั่งกล้ามเนื้อใน VNC</small>
+  </h1>
+  <figure style="margin:5mm 0 0">
+    <img src="fig/fig_3d_pathway.png" alt="the escape and chase pathway in 3D">
+    <figcaption>จุดสีเทาจาง ๆ คือสมองทั้งก้อนที่ถูกลดความเข้มลง &nbsp;·&nbsp; <b>แดง</b> LC4 และ LPLC2 เซลล์ตรวจจับวัตถุพุ่งเข้า &nbsp;·&nbsp; <b>ส้ม</b> LC10a เซลล์ตามเป้า &nbsp;·&nbsp; <b>เหลือง</b> DNp01 เส้นใยยักษ์สั่งหนี มีแค่ข้างละเส้น &nbsp;·&nbsp; <b>ฟ้า</b> DNa02 เซลล์คุมการเลี้ยว &nbsp;·&nbsp; <b>เขียว</b> เซลล์สั่งกล้ามเนื้อ 708 ตัวใน VNC</figcaption>
+  </figure>
+  <div class="cols-3" style="margin-top:6mm">
+    <div><h3 style="color:#8e9bad">สังเกตสัดส่วน</h3><p style="font-size:8.6pt">เซลล์ตรวจจับมีหลักร้อย เซลล์สั่งกล้ามเนื้อมี 708 แต่ระหว่างกลางมีเซลล์อีกแสนกว่าตัวที่ไม่ได้อยู่ในเส้นทางนี้เลย เดโมทั้งหมดใช้สมองไปไม่ถึงหนึ่งเปอร์เซ็นต์</p></div>
+    <div><h3 style="color:#8e9bad">DNp01 มีแค่ข้างละเส้น</h3><p style="font-size:8.6pt">จุดเหลืองสองจุดในภาพคือเส้นใยยักษ์ทั้งหมดที่แมลงวันมี หนึ่งเส้นต่อหนึ่งข้าง การตัดสินใจกระโดดหนีทั้งชีวิตของมันฝากไว้กับเซลล์สองตัวนี้</p></div>
+    <div><h3 style="color:#8e9bad">ระยะทางคือความหน่วง</h3><p style="font-size:8.6pt">สัญญาณต้องวิ่งจากกลีบตาไปสมองกลาง ลงคอ แล้วเข้า VNC ในโมเดลนี้ทุกก้าวใช้เวลา 20 ms เท่ากันหมด ระยะทางจริงจึงกลายเป็นจำนวนก้าวที่ต้องผ่าน</p></div>
+  </div>
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>10</b></div>
+</section>
+
+<!-- ============ 11 การทดลอง ============ -->
+<section class="page">
+  <div class="rail"><span>Reproduced here</span></div>
+  <div class="num">11</div>
+  <div class="kicker">การทดลองที่รันจริงบนเครื่องนี้</div>
+  <h1 class="sec">พิสูจน์ว่าสายไฟทำงาน ไม่ใช่แค่คำโฆษณา
+    <small>เขียนลูป LIF ขึ้นใหม่ตามค่าคงที่ที่ประกาศไว้ทุกตัว โหลดสายไฟจริง แล้วกระตุ้นเซลล์ตรวจจับข้างซ้ายอย่างเดียว</small>
+  </h1>
+
+  <figure class="fig-m" style="margin-top:3mm">
+    <img src="fig/fig_response.png" alt="measured response to loom and chase">
+  </figure>
+
+  <div class="cols-3 dense" style="margin-top:4mm">
+    <div>
+      <div class="hair"></div>
+      <h2>ผลที่ได้</h2>
+      <p>กระตุ้น LC4 + LPLC2 <strong>ข้างซ้าย</strong> เซลล์หนีตาย <code>DNp01</code> ข้างซ้ายพุ่งจาก 0 Hz ไปเป็น <strong>47 Hz</strong> ส่วน <code>DNp01</code> ข้างขวายังคงเป็น 0 Hz สนิทตลอดการทดลอง</p>
+      <p>กระตุ้น LC10a ข้างซ้าย <code>DNa02</code> ข้างซ้ายขยับขึ้น ส่วนข้างขวาไม่ขยับ และ <code>DNp01</code> ไม่ตอบสนองเลย</p>
+    </div>
+    <div>
+      <div class="hair"></div>
+      <h2>ทำไมถึงสำคัญ</h2>
+      <p>สัญญาณไม่ได้แค่ “ผ่านไปได้” แต่ผ่านไปถูกเส้น ถูกข้าง และไม่ปนกับเส้นอื่น ทั้งที่ไม่มีใครบอกเครือข่ายว่า LC4 ควรต่อกับ DNp01</p>
+      <p>ข้อมูลนี้ฝังอยู่ในรูปทรงของสายไฟตั้งแต่ตอนที่แมลงวันตัวนั้นยังมีชีวิต</p>
+    </div>
+    <div>
+      <div class="hair"></div>
+      <h2>เงื่อนไขการรัน</h2>
+      <table>
+        <tr><td>ก้าวที่รัน</td><td class="n">150 ก้าว = 3.0 วินาที</td></tr>
+        <tr><td>ช่วงกระตุ้น</td><td class="n">0.5 – 1.5 วินาที</td></tr>
+        <tr><td>ความแรง</td><td class="n">0.8 ต่อก้าว</td></tr>
+        <tr><td>สัญญาณตา</td><td class="n">0.45 คงที่</td></tr>
+        <tr><td>ความเร็ว</td><td class="n">29–38 ms ต่อก้าว</td></tr>
+      </table>
+      <p style="margin-top:2.5mm;font-size:8pt;color:var(--muted)">รันด้วย scipy เธรดเดียว เทียบกับ 8.9 ms/ก้าว บน CPU 24 เธรดผ่าน Numba และ 1.4 ms/ก้าว บน RTX 4060</p>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>11</b></div>
+</section>
+
+<!-- ============ 12 ใช้ทำอะไร ============ -->
+<section class="page">
+  <div class="rail"><span>What it is used for</span></div>
+  <div class="num">12</div>
+  <div class="kicker">การใช้งาน</div>
+  <h1 class="sec">เราเอาสมองแมลงวันไปทำอะไร
+    <small>ในรีโปมีเดโมสามตัว และมีผลการวัดที่ผู้พัฒนารายงานไว้อย่างตรงไปตรงมา รวมทั้งตอนที่มันแพ้</small>
+  </h1>
+
+  <div class="cols-3 dense" style="margin-top:5mm">
+    <div>
+      <h3>เดโม 01</h3>
+      <h2>SSH Fighter</h2>
+      <p>บอทเล่นเกมต่อสู้ผ่านเทอร์มินัล สถานะเกมถูกแปลงเป็นการกระตุ้นเซลล์ตรวจจับ 4 ชนิด ในฝั่งที่ตรงกับตำแหน่งคู่ต่อสู้ แล้วอ่านคำสั่งจาก descending neurons</p>
+      <div class="rule"></div>
+      <p style="font-size:8.6pt">มีแดชบอร์ดแสดงเซลล์ 140,638 ตัวที่มีพิกัด กะพริบตามการยิงจริง</p>
+    </div>
+    <div>
+      <h3>เดโม 02</h3>
+      <h2>Flybook</h2>
+      <p>โซเชียลเน็ตเวิร์กที่ผู้ใช้เป็นแมลงวัน โพสต์ถูกสร้างจากกิจกรรมของสมองที่ถอดรหัสออกมา มีทั้งเว็บ React และ worker ฝั่ง Python</p>
+      <div class="rule"></div>
+      <p style="font-size:8.6pt">สมองสองก้อนสามารถแลกข้อมูลกันผ่านสัญญาณเพลงปีกได้</p>
+    </div>
+    <div>
+      <h3>เดโม 03</h3>
+      <h2>Wiz</h2>
+      <p>หุ่นพ่อมด 3 มิติในเบราว์เซอร์ ที่ descending neurons ควบคุมโดยตรง โค้ดอยู่ในโฟลเดอร์ <code>world/</code> เป็น TypeScript พร้อมข้อมูล connectome 57 MB</p>
+      <div class="rule"></div>
+      <p style="font-size:8.6pt">รันสมองทั้งก้อนในเบราว์เซอร์ ไม่ต้องมีเซิร์ฟเวอร์</p>
+    </div>
+  </div>
+
+  <div class="rule" style="margin:5mm 0 4mm"></div>
+
+  <h2 style="margin-bottom:2.5mm">ผลวัดจริงจาก SSH Fighter — ทั้งที่ชนะและที่แพ้</h2>
+  <table class="t-fixed">
+    <tr><th>สิ่งที่วัด</th><th>ผลของสมองแมลงวัน</th><th>เทียบกับ</th><th>ตีความ</th></tr>
+    <tr>
+      <td><strong>ไล่ตามคู่ต่อสู้</strong><br><span style="font-size:7.6pt;color:var(--muted)">ไม่เทรนอะไรเลย</span></td>
+      <td class="n">64% ของการเคลื่อนที่</td>
+      <td class="n">สุ่ม = 50%</td>
+      <td>มาจากวงจรไล่จีบจริง LC10a → DNa02 สายไฟทำงานเองโดยไม่ต้องสอน</td>
+    </tr>
+    <tr>
+      <td><strong>ไล่ตาม เมื่อรัน 8 ตัวโหวตกัน</strong></td>
+      <td class="n">72%</td>
+      <td class="n">ตัวเดียว = 63%</td>
+      <td>การโหวตกรองสัญญาณรบกวนทิ้ง เหลือแต่สัญญาณที่สมองทุกก้อนเห็นตรงกัน</td>
+    </tr>
+    <tr>
+      <td><strong>หลบกระสุน</strong></td>
+      <td class="n">22% ของการกระโดด</td>
+      <td class="n">สุ่ม = 20%</td>
+      <td>ไม่ได้หลบ มันกระโดดตอนคู่ต่อสู้พุ่งเข้ามา ไม่ใช่ตอนโดนยิง</td>
+    </tr>
+    <tr>
+      <td><strong>ทำนายว่าหมัดจะเข้า</strong><br><span style="font-size:7.6pt;color:var(--muted)">readout ที่เทรนแล้ว</span></td>
+      <td class="n">AUC 0.77</td>
+      <td class="n">กฎ “ดูระยะห่าง” = 0.83</td>
+      <td>แพ้กฎง่าย ๆ ที่เขียนเองสามบรรทัด</td>
+    </tr>
+    <tr>
+      <td><strong>ถ้าตัดช่องสัญญาณ looming ออก</strong></td>
+      <td class="n">AUC 0.555</td>
+      <td class="n">สุ่ม = 0.50</td>
+      <td>พอตัดทางเข้าที่ตรงกับหน้าที่จริงของเซลล์ ความสามารถหายเกือบหมด สายไฟสำคัญจริง</td>
+    </tr>
+    <tr>
+      <td><strong>ผลการแข่งสด</strong></td>
+      <td class="n">ชนะครั้งแรก 1–7 เกม</td>
+      <td class="n">ก่อนหน้านั้น 0 ชนะ</td>
+      <td>ตัวแปรชี้ขาดคือ <em>ความหน่วง</em> ไม่ใช่คุณภาพโมเดล — 8 ตัวใช้เวลา 59–70 ms/เฟรม จนเกินงบ พอลดเหลือ 2 ตัวที่ 16–27 ms ก็เริ่มชนะ</td>
+    </tr>
+  </table>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>12</b></div>
+</section>
+
+<!-- ============ 13 ข้อจำกัด ============ -->
+<section class="page">
+  <div class="rail"><span>Limits</span></div>
+  <div class="num">13</div>
+  <div class="kicker">ข้อจำกัด</div>
+  <h1 class="sec">สิ่งที่โปรเจกต์นี้ยอมรับเอง
+    <small>ทั้งหมดนี้เขียนอยู่ใน README ของผู้พัฒนา ไม่ใช่ข้อกล่าวหาจากภายนอก</small>
+  </h1>
+
+  <div class="cols" style="margin-top:6mm">
+    <div class="stack">
+      <div>
+        <div class="hair"></div>
+        <h2>ระดับชีววิทยา</h2>
+        <ul>
+          <li><strong>เป็นเซลล์จุดเดียวล้วน</strong> ไม่มีเดนไดรต์ ไม่มีการคำนวณเฉพาะที่ ไม่มีสัญญาณแบบไล่ระดับ ไม่มีสารสื่อประสาทปรับสภาวะ</li>
+          <li><strong>สารสื่อประสาทถูกยุบเหลือแค่บวกกับลบ</strong> GABA, glutamate และ histamine ถูกเหมารวมเป็น “ยับยั้ง” ทั้งหมด</li>
+          <li><strong>ค่าคงที่ตั้งด้วยมือ</strong> tonic, gain, noise ไม่ได้มาจากการวัดเซลล์จริง</li>
+          <li><strong>ยังไม่เคยถูกตรวจสอบเทียบกับการบันทึกจากแมลงวันจริง</strong> นี่คือข้อจำกัดที่หนักที่สุด</li>
+        </ul>
+      </div>
+      <div class="note">
+        <div class="h">บั๊กที่ยังมีอยู่</div>
+        <p>เซลล์รับกลิ่นเกิดการยิงวนลูปไม่หยุดในค่าตั้งต้น ใครที่จะทำงานเกี่ยวกับกลิ่นต้องปิดช่องทางนั้นเองก่อน</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div>
+        <div class="hair"></div>
+        <h2>ระดับการใช้งาน</h2>
+        <ul>
+          <li><strong>ทางเข้าด้านภาพถูกลัดวงจร</strong> เดโมทั้งหมดยิงเข้าเซลล์ตรวจจับโดยตรง ไม่ได้ผ่านเซลล์รับแสงจริง เพราะเส้นทางผ่าน lamina จะจางหายไปในโมเดล spiking</li>
+          <li><strong>ความหน่วงคือคอขวดตัวจริง</strong> ถ้าลูปสมองช้ากว่าเฟรมเรตของเกม ข้อได้เปรียบที่วัดได้ตอน offline จะส่งไม่ถึงสนามจริง</li>
+          <li><strong>กฎง่าย ๆ มักชนะ</strong> เมื่อให้สถานะเกมครบถ้วน กฎที่เขียนเองไม่กี่บรรทัดยังเหนือกว่า readout ที่เทรนแล้วอยู่ดี</li>
+          <li><strong>ไม่มีคำสั่งที่แมลงวันไม่มี</strong> ไม่มี descending neuron ที่แปลว่า “ยิงปืน” เพราะแมลงวันไม่ยิงปืน</li>
+        </ul>
+      </div>
+      <div>
+        <div class="hair"></div>
+        <h2>แล้วมันมีประโยชน์ตรงไหน</h2>
+        <p>ในฐานะ <strong>ตัวชนะเกม</strong> มันแพ้สคริปต์สั้น ๆ แต่ในฐานะ <strong>เครื่องมือทดลอง</strong> มันตอบคำถามที่ไม่มีอะไรตอบได้มาก่อน เช่น ถ้าตัดช่องสัญญาณนี้ทิ้ง พฤติกรรมจะหายไปไหม และในฐานะ <strong>งานสาธิต</strong> มันแสดงให้เห็นชัดว่าโครงสร้างล้วน ๆ โดยไม่ต้องเรียนรู้ ก็ให้พฤติกรรมที่มีทิศทางได้</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>13</b></div>
+</section>
+
+<!-- ============ 14 ภาคผนวก ============ -->
+<section class="page">
+  <div class="rail"><span>Appendix</span></div>
+  <div class="num">14</div>
+  <div class="kicker">ภาคผนวก</div>
+  <h1 class="sec">รันเองใน 5 นาที
+    <small>ทุกอย่างในเอกสารนี้ทำซ้ำได้ด้วยคำสั่งข้างล่างนี้</small>
+  </h1>
+
+  <div class="cols-a" style="margin-top:6mm">
+    <div class="stack">
+      <div>
+        <h3>ติดตั้ง</h3>
+        <pre>pip install flybrain
+flybrain download   <span class="c"># ~260 MB ครั้งเดียว</span></pre>
+      </div>
+      <div>
+        <h3>กระตุ้นเซลล์หนีตาย แล้วดูว่าใครยิง</h3>
+        <pre>from flybrain import FlyBrain
+
+brain = FlyBrain(device=<span class="s">"auto"</span>)
+loom  = brain.cells([<span class="s">"LC4"</span>, <span class="s">"LPLC2"</span>], side=<span class="s">"L"</span>)
+dnp01 = brain.cells([<span class="s">"DNp01"</span>])
+
+for t in range(150):
+    if 25 &lt;= t &lt; 75:
+        brain.stimulate(loom, 0.8)
+    fired = brain.step()
+    <span class="c"># fired คือดัชนีของเซลล์ที่ยิงในก้าวนี้</span></pre>
+      </div>
+      <div>
+        <h3>รันหลายตัวพร้อมกัน</h3>
+        <pre>brain = FlyBrain(batch=8)   <span class="c"># สายไฟชุดเดียว 8 ชุดแรงดัน</span></pre>
+        <p style="margin-top:2mm;font-size:8.4pt">บน GPU การคูณเมทริกซ์ครั้งเดียวรับใช้ทั้ง 8 ตัว ต้นทุนจึงพอ ๆ กับรัน 1–2 ตัว</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div>
+        <div class="hair"></div>
+        <h2>โครงสร้างรีโป</h2>
+        <table>
+          <tr><td class="t">flybrain/</td><td>ตัวจำลอง — <code>brain.py</code> คือลูปหลัก 201 บรรทัด</td></tr>
+          <tr><td class="t">sshfighter/</td><td>บอทเล่นเกม + แดชบอร์ด + ตัวเทรน readout</td></tr>
+          <tr><td class="t">flybook/</td><td>เว็บ React + worker Python + Supabase</td></tr>
+          <tr><td class="t">world/</td><td>โลก 3 มิติ TypeScript พร้อมข้อมูล connectome</td></tr>
+          <tr><td class="t">inject.py</td><td>สคริปต์พิสูจน์เส้นทาง LC4 → DNp01 ที่หน้า 11 ทำซ้ำ</td></tr>
+          <tr><td class="t">sweep.py</td><td>กวาดค่า tonic/gain เพื่อหาจุดทำงานที่ดี</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="hair"></div>
+        <h2>แหล่งอ้างอิง</h2>
+        <table>
+          <tr><td>โค้ด</td><td class="t" style="font-size:7.8pt">github.com/alextitonis/fly.ai</td></tr>
+          <tr><td>เดโมออนไลน์</td><td class="t" style="font-size:7.8pt">fly-ai-dun.vercel.app</td></tr>
+          <tr><td>ข้อมูล connectome</td><td style="font-size:7.8pt">MaleCNS v1.0 — FlyEM, HHMI Janelia, CC BY 4.0</td></tr>
+          <tr><td>สัญญาอนุญาตโค้ด</td><td style="font-size:7.8pt">MIT</td></tr>
+        </table>
+      </div>
+      <div class="note">
+        <div class="h">หมายเหตุเรื่องความถูกต้อง</div>
+        <p>ตัวเลขทุกตัวในเอกสารนี้อ่านจาก <code>brain.npz</code> และ <code>weights.npz</code> โดยตรง ไม่ได้คัดลอกจาก README ยกเว้นผลการแข่ง SSH Fighter ในหน้า 12 ซึ่งอ้างตามที่ผู้พัฒนารายงานไว้</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="folio">fly.ai &nbsp;·&nbsp; <b>14</b></div>
+</section>
+
+</body>
+</html>
