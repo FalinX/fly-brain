@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.log
+*.mp4
+diag.npz
+readout_r0.npz

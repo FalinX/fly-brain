@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boxhead 2Play — live connectome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#07090d;
+  --panel:#0d1118;
+  --edge:#1b222e;
+  --ink:#dfe6ef;
+  --dim:#7a8698;
+  --amber:#fde047;
+  --teal:#2dd4bf;
+  --rose:#f87171;
+  --blue:#60a5fa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--void);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  height:100vh;
+}
+.mono{font-family:'Martian Mono',ui-monospace,monospace}
+
+/* ---------------- header ---------------- */
+header{
+  display:flex;align-items:center;gap:16px;
+  padding:11px 18px;
+  white-space:nowrap;
+  border-bottom:1px solid var(--edge);
+  background:linear-gradient(180deg,#0b0f15,#080b10);
+}
+h1{
+  font-family:'Martian Mono',monospace;flex:none;
+  font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+}
+h1 b{color:var(--amber)}
+.tag{
+  font-family:'Martian Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  color:var(--dim);text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;
+}
+@media (max-width:1180px){.tag.opt{display:none}}
+@media (max-width:920px){.tag{display:none}}
+.spacer{flex:1}
+select,button{
+  font-family:'Martian Mono',monospace;font-size:10px;letter-spacing:.08em;
+  background:#121822;color:var(--ink);border:1px solid var(--edge);
+  padding:6px 9px;border-radius:5px;cursor:pointer;text-transform:uppercase;
+}
+select:hover,button:hover{border-color:#31415a}
+button.go{background:var(--amber);color:#1a1405;border-color:var(--amber);font-weight:700}
+#link{color:var(--dim);font-size:11px}
+#dot{width:7px;height:7px;border-radius:50%;background:var(--rose);display:inline-block;
+  margin-right:6px;vertical-align:1px}
+#dot.on{background:var(--teal);box-shadow:0 0 8px var(--teal)}
+
+/* ---------------- stage ---------------- */
+main{display:grid;grid-template-columns:1fr 1fr;min-height:0}
+.pane{position:relative;min-height:0;overflow:hidden}
+.pane+.pane{border-left:1px solid var(--edge)}
+canvas{display:block;width:100%;height:100%}
+.plabel{
+  position:absolute;top:12px;left:14px;z-index:3;pointer-events:none;
+  font-family:'Martian Mono',monospace;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);
+}
+.plabel em{font-style:normal;color:var(--ink)}
+#overlay{position:absolute;inset:0;pointer-events:none;z-index:4}
+#marks{position:absolute;inset:0;pointer-events:none;z-index:4}
+.mk{
+  position:absolute;transform:translate(-50%,-50%);
+  font-family:'Martian Mono',monospace;font-size:9px;letter-spacing:.06em;
+  color:#69768c;white-space:nowrap;transition:color .12s;
+}
+.mk:before{
+  content:'';position:absolute;left:-13px;top:50%;width:8px;height:8px;
+  margin-top:-4px;border:1.4px solid currentColor;border-radius:50%;
+}
+.mk.hot{color:#fff;text-shadow:0 0 10px rgba(255,255,255,.55)}
+#dead{
+  position:absolute;inset:0;display:none;place-items:center;z-index:6;
+  background:radial-gradient(60% 60% at 50% 50%,rgba(10,6,8,.86),rgba(7,9,13,.96));
+}
+#dead div{
+  font-family:'Martian Mono',monospace;font-size:26px;letter-spacing:.24em;
+  color:var(--rose);text-transform:uppercase;
+}
+
+/* ---------------- hud ---------------- */
+footer{
+  display:grid;grid-template-columns:1fr 1fr 1.2fr 1.05fr;gap:0;
+  border-top:1px solid var(--edge);background:var(--panel);
+}
+.card{padding:11px 14px;border-right:1px solid var(--edge);min-width:0}
+.card:last-child{border-right:0}
+.ct{
+  font-family:'Martian Mono',monospace;font-size:8.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:9px;
+}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11.5px}
+.row .n{font-family:'Martian Mono',monospace;font-size:10px;color:var(--ink);
+  margin-left:auto;font-variant-numeric:tabular-nums}
+.who{font-family:'Martian Mono',monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase}
+.hp{height:5px;border-radius:3px;background:#1a2230;overflow:hidden;margin:3px 0 7px}
+.hp i{display:block;height:100%;border-radius:3px;transition:width .1s}
+.lr{display:flex;height:9px;background:#151c27;border-radius:2px;overflow:hidden;
+  margin:2px 0 8px;position:relative}
+.lr:after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:#2b3646}
+.lr i{display:block;height:100%}
+.lr i.l{margin-left:auto;background:var(--blue)}
+.lr i.r{background:#fb923c}
+.lab{display:flex;justify-content:space-between;font-size:10px;color:var(--dim)}
+.bar{height:8px;background:#151c27;border-radius:2px;overflow:hidden;margin:3px 0 8px}
+.bar i{display:block;height:100%;border-radius:2px;transition:width .08s}
+.chip{
+  font-family:'Martian Mono',monospace;font-size:8px;letter-spacing:.12em;
+  padding:1.5px 5px;border-radius:3px;text-transform:uppercase;
+}
+.chip.brain{background:rgba(45,212,191,.15);color:var(--teal)}
+.chip.hand{background:rgba(122,134,152,.14);color:var(--dim)}
+.chip.dead{background:rgba(248,113,113,.12);color:#b46b6b}
+.note{font-size:10px;color:var(--dim);line-height:1.45;margin-top:6px}
+.vnote{font-size:10px;color:#5d6880;line-height:1.45;margin-top:7px;
+  border-top:1px solid var(--edge);padding-top:7px}
+.vnote b{color:var(--amber);font-weight:600}
+.vnote i{font-style:normal;color:#8f9aae}
+.reg{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:10.5px}
+.reg .sw{width:7px;height:7px;border-radius:2px;flex:none}
+.reg .nm{color:var(--dim);width:72px;flex:none;overflow:hidden;text-overflow:ellipsis}
+.reg .b{flex:1;height:6px;background:#151c27;border-radius:2px;overflow:hidden}
+.reg .b i{display:block;height:100%}
+.reg .v{font-family:'Martian Mono',monospace;font-size:9px;width:42px;flex:none;text-align:right;
+  color:var(--dim);font-variant-numeric:tabular-nums}
+kbd{
+  font-family:'Martian Mono',monospace;font-size:9px;background:#161d28;
+  border:1px solid var(--edge);border-bottom-width:2px;border-radius:3px;
+  padding:1px 4px;color:var(--ink);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Boxhead <b>2Play</b></h1>
+  <span class="tag opt">driven by a real fruit-fly connectome</span>
+  <span class="tag" style="color:#57627a"><kbd>WASD</kbd> move &nbsp;<kbd>mouse</kbd> aim &nbsp;<kbd>click</kbd> fire &nbsp;<kbd>Q</kbd> weapon</span>
+  <span class="spacer"></span>
+  <span id="link" class="mono"><span id="dot"></span><span id="status">offline</span></span>
+  <select id="p1"><option value="human">P1 · you</option><option value="fly">P1 · fly</option><option value="script">P1 · script</option></select>
+  <select id="p2"><option value="fly">P2 · fly</option><option value="none">P2 · none</option><option value="script">P2 · script</option></select>
+  <select id="fv" title="which fly"></select>
+  <button class="go" id="start">restart</button>
+</header>
+
+<main>
+  <div class="pane">
+    <div class="plabel">Arena · <em id="wave">wave 0</em> · <em id="clock">0.0s</em></div>
+    <canvas id="arena"></canvas>
+    <div id="dead"><div>game over</div></div>
+  </div>
+  <div class="pane">
+    <div class="plabel">Live connectome · <em id="ncount">0</em> neurons · drag to orbit</div>
+    <canvas id="brain"></canvas>
+    <div id="marks"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="card">
+    <div class="ct">Players</div>
+    <div id="players"></div>
+  </div>
+  <div class="card">
+    <div class="ct">What it sees · voltage injected</div>
+    <div id="sees"></div>
+    <div class="note">Left eye vs right eye. These are the fly's own visual
+      projection neurons, driven by where the zombies actually are.</div>
+  </div>
+  <div class="card">
+    <div class="ct">What it does · descending neurons</div>
+    <div id="dns"></div>
+  </div>
+  <div class="card">
+    <div class="ct">Region activity</div>
+    <div id="regions"></div>
+    <div class="note" id="perf">—</div>
+    <div class="vnote" id="vnote"></div>
+  </div>
+</footer>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+ "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const $ = s => document.querySelector(s);
+const ARENA = $('#arena'), ax = ARENA.getContext('2d');
+
+let ws = null, init = null, expect = 0, pending = null;
+let positions = null, regionId = null, hot = null, geo = null, pts = null;
+let regionRate = null, regionSize = null, regionColor = [];
+let arena = [960, 640, 18];
+
+/* ---------------------------------------------------------------- three */
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(42, 1, 0.01, 100);
+cam.position.set(1.9, 0.75, 2.0);
+const renderer = new THREE.WebGLRenderer({canvas: $('#brain'), antialias: true,
+                                          alpha: false});
+renderer.setClearColor(0x07090d, 1);
+const controls = new OrbitControls(cam, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.5;
+controls.minDistance = 0.4;
+controls.enablePan = false;
+
+const MAT = new THREE.ShaderMaterial({
+  uniforms: {uSize: {value: 2.0}, uPix: {value: window.devicePixelRatio || 1}},
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: `
+    attribute vec3 aColor; attribute float aHot;
+    varying vec3 vC; varying float vH;
+    uniform float uSize; uniform float uPix;
+    void main(){
+      vC = aColor; vH = aHot;
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = uSize * uPix * (1.0 + 1.5 * min(aHot, 1.0)) * (2.2 / -mv.z);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: `
+    varying vec3 vC; varying float vH;
+    void main(){
+      vec2 d = gl_PointCoord - vec2(0.5);
+      float r = dot(d, d);
+      if (r > 0.25) discard;
+      float soft = 1.0 - smoothstep(0.06, 0.25, r);
+      float a = 0.05 + 1.15 * (1.0 - exp(-vH * 1.7));
+      gl_FragColor = vec4(vC * a, soft * (0.16 + 0.84 * min(vH, 1.0)));
+    }`
+});
+
+function buildCloud(){
+  geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const col = new Float32Array(init.n * 3);
+  for (let i = 0; i < init.n; i++){
+    const c = regionColor[regionId[i]];
+    col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
+  }
+  geo.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+  hot = new Float32Array(init.n);
+  geo.setAttribute('aHot', new THREE.BufferAttribute(hot, 1));
+  if (pts) scene.remove(pts);
+  pts = new THREE.Points(geo, MAT);
+  scene.add(pts);
+  // frame the whole nervous system, whatever its extent
+  geo.computeBoundingSphere();
+  const bs = geo.boundingSphere;
+  controls.target.copy(bs.center);
+  const dist = bs.radius / Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * 1.05;
+  cam.position.set(bs.center.x + dist * 0.62, bs.center.y + dist * 0.18,
+                   bs.center.z + dist * 0.78);
+  cam.near = dist * 0.01; cam.far = dist * 6;
+  cam.updateProjectionMatrix();
+  controls.update();
+}
+
+/* ---------------------------------------------------------------- markers */
+let markEls = {};
+function buildMarks(){
+  const host = $('#marks');
+  host.innerHTML = '';
+  markEls = {};
+  for (const [name, p] of Object.entries(init.marks)){
+    const el = document.createElement('div');
+    el.className = 'mk';
+    el.textContent = name;
+    host.appendChild(el);
+    markEls[name] = {el, v: new THREE.Vector3(p[0], p[1], p[2]), hot: 0};
+  }
+}
+function placeMarks(){
+  const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+  const list = [];
+  for (const m of Object.values(markEls)){
+    const v = m.v.clone().project(cam);
+    list.push({m, x: (v.x*0.5+0.5)*w, y: (-v.y*0.5+0.5)*h, behind: v.z > 1});
+  }
+  // labels sit on top of each other otherwise: stack them down the panel
+  list.sort((a, b) => a.y - b.y);
+  let prev = -1e9;
+  for (const it of list){
+    const y = Math.max(it.y, prev + 17);
+    prev = y;
+    it.m.el.style.left = (it.x + 18) + 'px';
+    it.m.el.style.top = y + 'px';
+    it.m.el.style.opacity = it.behind ? 0 : 1;
+  }
+}
+
+/* ---------------------------------------------------------------- hud */
+function el(html){const d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild;}
+const PCOL = {fly: '#fde047', 'fly-trained': '#fde047', script: '#8b95a6', human: '#60a5fa'};
+
+function drawPlayers(f){
+  const host = $('#players');
+  host.innerHTML = '';
+  f.players.forEach((p, i) => {
+    const c = PCOL[p.pilot] || '#60a5fa';
+    host.appendChild(el(`<div>
+      <div class="row"><span class="who" style="color:${c}">P${i+1} · ${p.pilot}</span>
+        <span class="n">${p.kills} kills · ${p.score}</span></div>
+      <div class="hp"><i style="width:${p.hp}%;background:${p.alive ? c : '#5b2b2b'}"></i></div>
+      <div class="lab"><span>${p.weapon}</span><span>${p.acc}% hit</span></div>
+    </div>`));
+  });
+}
+
+const SEE = [['loom', 'LPLC2 looming'], ['threat', 'LC4 threat'],
+             ['chase', 'LC10a target'], ['shot', 'LPLC1 small/fast']];
+function drawSees(d){
+  const host = $('#sees');
+  host.innerHTML = '';
+  for (const [k, lab] of SEE){
+    const l = (d[k+'_L'] || 0) / 0.8 * 100, r = (d[k+'_R'] || 0) / 0.8 * 100;
+    host.appendChild(el(`<div>
+      <div class="lab"><span>${lab}</span><span>L | R</span></div>
+      <div class="lr"><i class="l" style="width:${l/2}%"></i><i class="r" style="width:${r/2}%"></i></div>
+    </div>`));
+  }
+}
+
+function drawDNs(fly){
+  const d = fly.dn, host = $('#dns');
+  const steer = (d.steer_R - d.steer_L);
+  const rows = [
+    ['DNa02 steer', steer.toFixed(1) + ' Hz', Math.min(1, Math.abs(steer)/6),
+     '#2dd4bf', fly.trained ? 'brain' : 'brain', fly.trained ? 'trained' : 'brain'],
+    ['DNp01 escape', d.escape.toFixed(1) + ' Hz', Math.min(1, d.escape/20),
+     fly.flee ? '#f87171' : '#2dd4bf', 'brain', fly.trained ? 'trained' : 'brain'],
+    ['DNg100 forward', d.forward.toFixed(1) + ' Hz', Math.min(1, d.forward/20),
+     '#3b4657', 'dead', 'silent 97%'],
+    ['DNg11 punch', d.punch.toFixed(1) + ' Hz', Math.min(1, d.punch/20),
+     '#3b4657', 'dead', 'noise'],
+  ];
+  if (fly.has_dodge){
+    const deg = fly.esc === null ? '—' : (fly.esc * 57.3).toFixed(0) + '°';
+    rows.splice(2, 0,
+      ['escape heading', deg, fly.esc === null ? 0 : Math.abs(Math.sin(fly.esc)),
+       '#a78bfa', 'brain', 'trained'],
+      ['barrel in line of fire', fly.blocked.toFixed(2),
+       Math.max(0, Math.min(1, fly.blocked)),
+       fly.blocked > 0.45 ? '#fb923c' : '#3b4657', 'brain',
+       fly.blocked > 0.45 ? 'hold fire' : 'trained']);
+    rows.length = 5;
+  }
+  host.innerHTML = '';
+  for (const [lab, val, frac, col, cls, chip] of rows){
+    host.appendChild(el(`<div>
+      <div class="lab"><span>${lab} <span class="chip ${cls}">${chip}</span></span><span>${val}</span></div>
+      <div class="bar"><i style="width:${frac*100}%;background:${col}"></i></div>
+    </div>`));
+  }
+  const enc = fly.encoder === 'retino'
+    ? 'Encoder: every zombie lands on the detectors whose place in the lobula matches its bearing, behind included.'
+    : 'Encoder: one number per eye, blind behind ±90°.';
+  host.appendChild(el(`<div class="note">${fly.trained
+    ? 'Aim and flee are a ridge readout over all 1,314 descending neurons. The connectome itself is unchanged. '
+    : 'Aim and flee are read from 4 named cells. Walking and the trigger are hand rules. '}${enc}</div>`));
+}
+
+function drawRegions(){
+  const host = $('#regions');
+  host.innerHTML = '';
+  init.regions.forEach((r, i) => {
+    const v = regionRate[i];
+    host.appendChild(el(`<div class="reg">
+      <span class="sw" style="background:${r.color}"></span>
+      <span class="nm">${r.name}</span>
+      <span class="b"><i style="width:${Math.min(1, v/12)*100}%;background:${r.color}"></i></span>
+      <span class="v">${v.toFixed(1)} Hz</span></div>`));
+  });
+}
+
+/* ---------------------------------------------------------------- arena */
+function drawArena(f){
+  const [W, H, WALLT] = arena;
+  const cw = ARENA.clientWidth, ch = ARENA.clientHeight;
+  const dpr = window.devicePixelRatio || 1;
+  if (ARENA.width !== cw*dpr || ARENA.height !== ch*dpr){
+    ARENA.width = cw*dpr; ARENA.height = ch*dpr;
+  }
+  const s = Math.min(cw/W, ch/H);
+  ax.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ax.clearRect(0, 0, cw, ch);
+  ax.fillStyle = '#07090d'; ax.fillRect(0, 0, cw, ch);
+  ax.save();
+  ax.translate((cw - W*s)/2, (ch - H*s)/2); ax.scale(s, s);
+
+  ax.fillStyle = '#10151d'; ax.fillRect(0, 0, W, H);
+  ax.strokeStyle = '#161d27'; ax.lineWidth = 1;
+  for (let x = 48; x < W; x += 48){ax.beginPath();ax.moveTo(x,0);ax.lineTo(x,H);ax.stroke();}
+  for (let y = 48; y < H; y += 48){ax.beginPath();ax.moveTo(0,y);ax.lineTo(W,y);ax.stroke();}
+  ax.strokeStyle = '#2a3547'; ax.lineWidth = WALLT;
+  ax.strokeRect(WALLT/2, WALLT/2, W-WALLT, H-WALLT);
+
+  for (const [x, y, lit] of f.bar){
+    ax.fillStyle = lit ? '#ff7a3c' : '#b4682f';
+    ax.fillRect(x-11, y-11, 22, 22);
+  }
+  for (const [x, y, t, r] of f.boom){
+    const rr = r * (0.45 + 0.55*t);
+    const g = ax.createRadialGradient(x, y, 0, x, y, rr);
+    g.addColorStop(0, `rgba(255,190,90,${0.62*(1-t)})`);
+    g.addColorStop(1, 'rgba(255,140,60,0)');
+    ax.fillStyle = g; ax.beginPath(); ax.arc(x, y, rr, 0, 7); ax.fill();
+  }
+  for (const [x, y, devil, flash] of f.z){
+    ax.fillStyle = flash ? '#ffffff' : (devil ? '#e05c58' : '#76b260');
+    ax.fillRect(x-13, y-13, 26, 26);
+    ax.strokeStyle = '#0b0e13'; ax.lineWidth = 2; ax.strokeRect(x-13, y-13, 26, 26);
+  }
+  ax.strokeStyle = '#fff0b4'; ax.lineWidth = 2;
+  for (const [x, y, vx, vy] of f.b){
+    ax.beginPath(); ax.moveTo(x, y); ax.lineTo(x - vx*0.014, y - vy*0.014); ax.stroke();
+  }
+  f.players.forEach((p, i) => {
+    const c = p.hurt > 0 ? '#ff8080' : (p.alive ? (PCOL[p.pilot]||'#60a5fa') : '#464e5c');
+    ax.fillStyle = c; ax.fillRect(p.x-14, p.y-14, 28, 28);
+    ax.strokeStyle = '#0b0e13'; ax.lineWidth = 2; ax.strokeRect(p.x-14, p.y-14, 28, 28);
+    if (p.alive){
+      ax.strokeStyle = c; ax.lineWidth = 4;
+      ax.beginPath(); ax.moveTo(p.x, p.y);
+      ax.lineTo(p.x + Math.cos(p.aim)*30, p.y + Math.sin(p.aim)*30); ax.stroke();
+    }
+  });
+  ax.restore();
+  ARENA._s = s; ARENA._ox = (cw - W*s)/2; ARENA._oy = (ch - H*s)/2;
+}
+
+/* ---------------------------------------------------------------- input */
+const keys = {w:0, a:0, s:0, d:0};
+let aim = 0, fire = false, swap = false;
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k in keys){keys[k] = 1; e.preventDefault();}
+  if (k === 'q') swap = true;
+  if (k === ' '){fire = true; e.preventDefault();}
+});
+addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k in keys) keys[k] = 0;
+  if (k === ' ') fire = false;
+});
+ARENA.addEventListener('mousemove', e => {
+  const r = ARENA.getBoundingClientRect();
+  const x = (e.clientX - r.left - (ARENA._ox||0)) / (ARENA._s||1);
+  const y = (e.clientY - r.top - (ARENA._oy||0)) / (ARENA._s||1);
+  const p = lastFrame && lastFrame.players[0];
+  if (p) aim = Math.atan2(y - p.y, x - p.x);
+});
+ARENA.addEventListener('mousedown', () => fire = true);
+addEventListener('mouseup', () => fire = false);
+ARENA.addEventListener('contextmenu', e => e.preventDefault());
+
+/* ---------------------------------------------------------------- socket */
+let lastFrame = null;
+function connect(){
+  if (ws) {ws.onclose = null; ws.close();}
+  const p1 = $('#p1').value, p2 = $('#p2').value;
+  const fv = $('#fv').value || '';
+  const seed = 1 + Math.floor(Math.random() * 500);
+  ws = new WebSocket(`ws://${location.host}/ws?p1=${p1}&p2=${p2}&seed=${seed}&fly=${fv}`);
+  ws.binaryType = 'arraybuffer';
+  expect = 0; init = null;
+  $('#status').textContent = 'connecting';
+  $('#dot').classList.remove('on');
+
+  ws.onopen = () => {$('#status').textContent = 'live'; $('#dot').classList.add('on');};
+  ws.onclose = () => {$('#status').textContent = 'offline'; $('#dot').classList.remove('on');};
+  ws.onmessage = ev => {
+    if (typeof ev.data === 'string'){
+      const m = JSON.parse(ev.data);
+      if (m.type === 'init'){
+        init = m; arena = m.arena; expect = 1;
+        regionColor = m.regions.map(r => {
+          const h = r.color;
+          return [parseInt(h.slice(1,3),16)/255, parseInt(h.slice(3,5),16)/255,
+                  parseInt(h.slice(5,7),16)/255];
+        });
+        regionSize = m.regions.map(r => Math.max(1, r.size));
+        regionRate = new Float32Array(m.regions.length);
+        $('#ncount').textContent = m.n.toLocaleString();
+        buildMarks();
+        const fv = $('#fv');
+        if (fv.options.length !== m.versions.length){
+          fv.innerHTML = '';
+          for (const v of m.versions){
+            const o = document.createElement('option');
+            o.value = v.id; o.textContent = v.label;
+            fv.appendChild(o);
+          }
+        }
+        fv.value = m.version;
+        const cur = m.versions.find(v => v.id === m.version);
+        if (cur) $('#vnote').innerHTML =
+          `<b>${cur.label}</b> — ${cur.headline}<br>${cur.note}` +
+          (cur.score && cur.score !== 'measuring'
+            ? `<br><i>measured over 12 arenas: ${cur.score}</i>` : '');
+      } else if (m.type === 'f'){
+        lastFrame = m;
+        drawArena(m);
+        drawPlayers(m);
+        $('#wave').textContent = 'wave ' + m.wave;
+        $('#clock').textContent = m.t.toFixed(1) + 's';
+        $('#dead').style.display = m.over ? 'grid' : 'none';
+        if (m.fly){drawSees(m.fly.see); drawDNs(m.fly);}
+        $('#perf').textContent = `brain ${m.ms} ms per frame · budget ${(init.dt*1000).toFixed(0)} ms`;
+      }
+    } else {
+      if (expect === 1){positions = new Float32Array(ev.data); expect = 2;}
+      else if (expect === 2){regionId = new Uint8Array(ev.data); expect = 3; buildCloud();}
+      else if (hot){
+        const rows = new Uint32Array(ev.data);
+        for (let i = 0; i < hot.length; i++) hot[i] *= 0.70;
+        const cnt = new Float32Array(regionRate.length);
+        for (let i = 0; i < rows.length; i++){
+          const r = rows[i];
+          hot[r] += 1.0;
+          cnt[regionId[r]] += 1;
+        }
+        geo.attributes.aHot.needsUpdate = true;
+        for (let i = 0; i < regionRate.length; i++)
+          regionRate[i] = 0.7*regionRate[i] + 0.3*(cnt[i]/regionSize[i]/init.dt);
+        drawRegions();
+        for (const [name, m] of Object.entries(markEls)){
+          const on = looksHot(name);
+          m.el.classList.toggle('hot', on);
+        }
+      }
+    }
+  };
+}
+
+const MARK_TYPES = {LC4:'threat', LPLC2:'loom', LPLC1:'shot', LC10a:'chase'};
+function looksHot(name){
+  if (!lastFrame || !lastFrame.fly) return false;
+  const k = MARK_TYPES[name];
+  if (k) return (lastFrame.fly.see[k+'_L'] + lastFrame.fly.see[k+'_R']) > 0.15;
+  const d = lastFrame.fly.dn;
+  if (name === 'DNp01') return d.escape > 6;
+  if (name === 'DNa02') return Math.abs(d.steer_R - d.steer_L) > 1.5;
+  if (name === 'MDN') return d.backward > 1;
+  return false;
+}
+
+setInterval(() => {
+  if (ws && ws.readyState === 1){
+    ws.send(JSON.stringify({t:'k', keys, aim, fire, swap}));
+    swap = false;
+  }
+}, 33);
+
+/* ---------------------------------------------------------------- loop */
+function resize(){
+  const c = renderer.domElement;
+  const w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== w * (devicePixelRatio||1) || c.height !== h * (devicePixelRatio||1)){
+    renderer.setPixelRatio(devicePixelRatio || 1);
+    renderer.setSize(w, h, false);
+    cam.aspect = w / Math.max(1, h);
+    cam.updateProjectionMatrix();
+  }
+}
+function tick(){
+  resize();
+  controls.update();
+  renderer.render(scene, cam);
+  if (init) placeMarks();
+  requestAnimationFrame(tick);
+}
+tick();
+
+$('#start').onclick = connect;
+$('#p1').onchange = connect;
+$('#p2').onchange = connect;
+$('#fv').onchange = connect;
+connect();
+</script>
+</body>
+</html>
