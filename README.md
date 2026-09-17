@@ -35,7 +35,7 @@ always clear which is which.
 
 ---
 
-## Six versions, measured the same way
+## Eight versions, measured the same way
 
 Every number below is 12 arenas × 90 s, identical seeds for every version,
 solo, unlimited ammo.
@@ -47,8 +47,12 @@ solo, unlimited ammo.
 | **v3** + DAgger | 1 value per eye | refit on its own states | reverse | none | 82.1 ± 12.2 | 54.3 ± 9.6 | 27.5% |
 | **v4** retinotopic | bearing-resolved | + escape + barrel | trained | trained (AUC 0.61) | 59.5 ± 20.7 | 34.2 ± 14.5 | 21.2% |
 | **v5** + hand barrel | bearing-resolved | + escape + barrel | trained | geometry | 73.7 ± 19.4 | 41.2 ± 13.3 | 27.6% |
-| **v6** new eyes, old legs | bearing-resolved | aim + flee | reverse | geometry | **90.0 ± 0.0** | 39.3 ± 5.3 | **38.1%** |
+| **v6** new eyes, old legs | bearing-resolved | aim + flee | reverse | fixed cone | 90.0 ± 0.0 | 39.3 ± 5.3 | **38.1%** |
+| **v7** tighter barrel rule ⭐ | bearing-resolved | aim + flee | reverse | true geometry | **89.9 ± 0.2** | **43.8 ± 2.8** | 31.7% |
+| **v8** DAgger round 2 | bearing-resolved | refit on v7's states | reverse | true geometry | 86.7 ± 11.1 | 41.0 ± 8.6 | 29.1% |
 | _baseline_ 3-rule script | — | — | — | — | 77.0 ± 20.7 | 55.8 ± 16.6 | 58.1% |
+
+⭐ **v7 is the default.** Not the newest — the best measured.
 
 Switch between them live from the dropdown in the browser, or
 `python play.py --fly v3`.
@@ -119,6 +123,39 @@ price of the barrel rule, which holds fire whenever a barrel sits within
 shots, each one landing more often, nobody exploding. Whether that is an
 improvement depends on whether you are scoring survival or score.
 
+**v6 → v7. The barrel rule was asking the wrong question.**
+v6 held fire whenever a barrel sat within ±0.30 rad and 420 px. At that range
+±0.30 rad is 124 px off the line, for a barrel 22 px wide, with seven of them
+on a 960×640 map — so it was silent most of the time, and that is what cost it
+fifteen kills against v3. v7 asks whether a bullet would actually arrive:
+
+```python
+perp = dist * abs(sin(rel))                       # offset from the line of fire
+clearance = 11 + dist * WEAPONS[weapon].spread + 6  # barrel radius + the cone this gun throws
+blocked = perp < clearance
+```
+
+Kills go 39.3 → **43.8** with survival unchanged, and the spread across arenas
+collapses to **± 2.8 kills** against the script's ± 16.6. The fly is now far
+more consistent than the hand-written baseline, just lower-scoring.
+
+**v7 → v8. DAgger saturates at round 1.**
+The readout v6 and v7 run was fitted while the pilot still steered with the
+trained escape heading, which both of them threw away — so v7 visits states its
+own readout never saw. `learn2.py` closed that gap: v7 drives, label what it
+produces, half the data still script-and-wander for coverage, refit.
+
+Offline it moved 84.1% → 84.7% side-correct and nothing else changed. In the
+game, paired over the same twelve arenas: survival −3.3 s (t = −0.98), kills
+−2.8 (t = −1.08). **Both inside the noise, and excluding one blow-up seed the
+two are identical at 43.3 against 43.7 kills.**
+
+Round 1 was worth fifteen kills a run. Round 2 was worth nothing. v8 is kept
+in the repo so that result is on the record, but `versions.py` defaults to v7.
+
+One thing did change: with v7 driving, the collector recorded **0 deaths**
+across six 60-second runs, against four or five in every earlier round.
+
 ---
 
 ## Run it
@@ -158,6 +195,7 @@ python multibench.py              # script baseline, 12 seeds
 python benchtrained.py v3         # any version, 12 seeds
 python dagger.py 75               # v2 -> v3: one DAgger round
 python learn.py 60                # v4: retinotopic encoder, dodge + barrel targets
+python learn2.py 60 v7            # v8: DAgger round 2 on whichever version drives
 ```
 
 `learn.py` and `dagger.py` each take roughly 10–15 minutes on a laptop CPU and
@@ -177,7 +215,7 @@ encoder or the targets.
 | `server.py` + `web/index.html` | browser build: aiohttp + websocket, three.js point cloud |
 | `diag.py` | logs encoder in / descending out and correlates them |
 | `bench.py`, `multibench.py`, `benchtrained.py` | the measurement harness |
-| `train.py`, `dagger.py`, `learn.py` | fitting the readouts |
+| `train.py`, `dagger.py`, `learn.py`, `learn2.py` | fitting the readouts |
 | `ensemble.py` | N copies of one brain voting — untested at scale, see below |
 | `readout*.npz` | the fitted linear layers, ~10 MB, enough to play every version |
 
@@ -202,8 +240,9 @@ encoder or the targets.
 
 ## Open threads
 
-* **DAgger round 2–3 on the v6 readout.** Round 1 was worth 15 kills a run;
-  the curve usually flattens around round 3.
+* ~~DAgger round 2~~ — done, and it bought nothing (v8 above). If anyone tries
+  round 3, the interesting question is whether a target other than aim is what
+  is saturating.
 * **Escape heading is still weak** at 69.7°. Either it needs its own DAgger
   rounds on states where escaping actually matters, or the descending
   population genuinely does not carry a usable direction and the hand rule is

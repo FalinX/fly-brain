@@ -97,7 +97,44 @@ VERSIONS = [
         "barrel_gate": "hand",
         "escape_mode": "hand",
     },
+    {
+        "id": "v7",
+        "label": "v7 · tighter barrel rule",
+        "encoder": "retino",
+        "readout": "readout_dodge.npz",
+        "headline": "only holds fire when a bullet would really hit a barrel",
+        "note": "v6 held fire whenever a barrel sat within ±0.30 rad and "
+                "420 px — up to 124 px off the line — and with seven barrels "
+                "on the map it was silent most of the time. v7 asks whether a "
+                "bullet would actually reach one: the barrel's 11 px radius "
+                "plus the cone the current weapon throws at that range. Same "
+                "brain, same readout, tighter question.",
+        "score": "89.9 s · 43.8 kills · 31.7% hit · 11 of 12 full runs",
+        "barrel_gate": "tight",
+        "escape_mode": "hand",
+    },
+    {
+        "id": "v8",
+        "label": "v8 · DAgger round 2",
+        "encoder": "retino",
+        "readout": "readout_v8.npz",
+        "headline": "refitted on the states v7 actually visits",
+        "note": "The readout v6 and v7 run was fitted while the pilot was "
+                "still steering with the trained escape heading, which they "
+                "both threw away. This round let v7 drive and refitted on what "
+                "it produces, half on-policy, half script and wander for "
+                "coverage. Offline it is flat — aim side 84.1% → 84.7% — which "
+                "is what a saturating DAgger curve looks like.",
+        "score": "86.7 s · 41.0 kills · 29.1% hit — no better than v7",
+        "barrel_gate": "tight",
+        "escape_mode": "hand",
+    },
 ]
+
+# What `server.py` and `play.py` start on when no version is named. Not the
+# newest — the best measured. v8 exists to record that DAgger round 2 bought
+# nothing, not because it should be played.
+DEFAULT = "v7"
 
 
 def available():
@@ -110,8 +147,11 @@ def available():
 
 
 def get(vid):
-    for v in available():
+    av = available()
+    for v in av:
         if v["id"] == vid:
             return v
-    av = available()
+    for v in av:
+        if v["id"] == DEFAULT:
+            return v
     return av[-1] if av else VERSIONS[0]

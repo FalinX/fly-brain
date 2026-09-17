@@ -51,7 +51,7 @@ VERSION = None
 
 def make_pilot(kind):
     if kind == "fly":
-        v = VERSION or versions.available()[-1]
+        v = VERSION or versions.get("")
         return FlyPilot(readout=v["readout"], encoder=v["encoder"],
                         barrel_gate=v.get("barrel_gate", "none"),
                         escape_mode=v.get("escape_mode", "hand"), label=v["id"])

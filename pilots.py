@@ -439,15 +439,34 @@ class FlyPilot:
             # has no circuit this question maps onto.
             self.blocked = self._ro("blocked")
             fire = self.blocked < 0.45
-        elif self.barrel_gate == "hand":
-            # HAND — geometry, not the fly. Three lines, and it works.
-            # a bullet that misses the zombie keeps going, so a barrel behind
-            # the target is just as dangerous as one in front of it
+        elif self.barrel_gate in ("hand", "tight"):
+            # HAND — geometry, not the fly.
+            #
+            # "hand" is the first version: a fixed cone. It stops the fly
+            # blowing itself up, but +-0.30 rad at 420 px means holding fire
+            # whenever a barrel is within 124 px of the line, and with seven
+            # barrels on the map that is most of the time. It cost v6 about
+            # fifteen kills a run.
+            #
+            # "tight" asks the real question instead: will a bullet actually
+            # reach the barrel? A barrel is 22 px across and the gun scatters
+            # by its own spread, so the width to clear is the barrel's radius
+            # plus the cone the weapon itself throws at that range.
+            p_ = obs["self"]
+            spread = WEAPONS[p_.weapon].spread
             self.blocked = 0.0
             for b in obs["barrels"]:
-                if abs(b["rel"]) < 0.30 and b["dist"] < 420:
-                    self.blocked = 1.0
-                    break
+                if b["dist"] > 520 or abs(b["rel"]) > 1.2:
+                    continue
+                if self.barrel_gate == "hand":
+                    if abs(b["rel"]) < 0.30 and b["dist"] < 420:
+                        self.blocked = 1.0
+                        break
+                else:
+                    perp = b["dist"] * abs(math.sin(b["rel"]))
+                    if perp < 11.0 + b["dist"] * spread + 6.0:
+                        self.blocked = 1.0
+                        break
             fire = self.blocked < 0.5
         else:
             self.blocked = 0.0
