@@ -129,6 +129,22 @@ VERSIONS = [
         "barrel_gate": "tight",
         "escape_mode": "hand",
     },
+    {
+        "id": "v9",
+        "label": "v9 · two flies voting",
+        "encoder": "retino",
+        "readout": "readout_dodge.npz",
+        "headline": "same wiring twice, different noise, averaged",
+        "flies": 2,
+        "note": "Two copies of v7 with their own noise streams. Whatever the "
+                "connectome is really computing is shared by both; the noise "
+                "is not, so averaging their readouts cancels it. fly.ai "
+                "measured chase going 63% to 72% with eight copies voting. Two "
+                "is what a 33.3 ms frame affords once v7 costs about 10 ms.",
+        "score": "90.0 s · 43.0 kills · 31.8% hit — same as v7 at 2.3x the compute",
+        "barrel_gate": "tight",
+        "escape_mode": "hand",
+    },
 ]
 
 # What `server.py` and `play.py` start on when no version is named. Not the

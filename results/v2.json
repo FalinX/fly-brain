@@ -1,0 +1,94 @@
+{
+ "version": "v2",
+ "label": "v2 \u00b7 trained readout",
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203
+ ],
+ "seconds": 90.0,
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 62.3,
+   "kills": 37,
+   "acc": 21.6
+  },
+  {
+   "seed": 11,
+   "survived": 24.0,
+   "kills": 10,
+   "acc": 13.4
+  },
+  {
+   "seed": 23,
+   "survived": 24.6,
+   "kills": 10,
+   "acc": 12.9
+  },
+  {
+   "seed": 41,
+   "survived": 90.0,
+   "kills": 62,
+   "acc": 30.4
+  },
+  {
+   "seed": 57,
+   "survived": 46.9,
+   "kills": 26,
+   "acc": 22.8
+  },
+  {
+   "seed": 63,
+   "survived": 66.0,
+   "kills": 39,
+   "acc": 21.8
+  },
+  {
+   "seed": 88,
+   "survived": 90.0,
+   "kills": 54,
+   "acc": 27.2
+  },
+  {
+   "seed": 101,
+   "survived": 83.6,
+   "kills": 50,
+   "acc": 23.7
+  },
+  {
+   "seed": 119,
+   "survived": 90.0,
+   "kills": 62,
+   "acc": 27.7
+  },
+  {
+   "seed": 144,
+   "survived": 16.4,
+   "kills": 7,
+   "acc": 14.0
+  },
+  {
+   "seed": 177,
+   "survived": 90.0,
+   "kills": 58,
+   "acc": 28.1
+  },
+  {
+   "seed": 203,
+   "survived": 86.8,
+   "kills": 55,
+   "acc": 26.8
+  }
+ ],
+ "note": "backfilled from the session log"
+}

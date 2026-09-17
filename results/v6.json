@@ -1,0 +1,130 @@
+{
+ "version": "v6",
+ "label": "v6 \u00b7 retinotopic, hand escape",
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203
+ ],
+ "seconds": 90.0,
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 90.0,
+   "kills": 36,
+   "acc": 31.4,
+   "dmg_barrel": 26,
+   "dmg_contact": 72,
+   "barrel_shots": 17
+  },
+  {
+   "seed": 11,
+   "survived": 90.0,
+   "kills": 42,
+   "acc": 49.5,
+   "dmg_barrel": 0,
+   "dmg_contact": 59,
+   "barrel_shots": 6
+  },
+  {
+   "seed": 23,
+   "survived": 90.0,
+   "kills": 38,
+   "acc": 44.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 80,
+   "barrel_shots": 5
+  },
+  {
+   "seed": 41,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 33.3,
+   "dmg_barrel": 0,
+   "dmg_contact": 2,
+   "barrel_shots": 6
+  },
+  {
+   "seed": 57,
+   "survived": 90.0,
+   "kills": 46,
+   "acc": 33.1,
+   "dmg_barrel": 0,
+   "dmg_contact": 28,
+   "barrel_shots": 6
+  },
+  {
+   "seed": 63,
+   "survived": 90.0,
+   "kills": 31,
+   "acc": 31.9,
+   "dmg_barrel": 0,
+   "dmg_contact": 29,
+   "barrel_shots": 5
+  },
+  {
+   "seed": 88,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 41.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 82,
+   "barrel_shots": 10
+  },
+  {
+   "seed": 101,
+   "survived": 90.0,
+   "kills": 33,
+   "acc": 35.6,
+   "dmg_barrel": 0,
+   "dmg_contact": 76,
+   "barrel_shots": 5
+  },
+  {
+   "seed": 119,
+   "survived": 90.0,
+   "kills": 31,
+   "acc": 30.4,
+   "dmg_barrel": 0,
+   "dmg_contact": 7,
+   "barrel_shots": 6
+  },
+  {
+   "seed": 144,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 48.8,
+   "dmg_barrel": 0,
+   "dmg_contact": 26,
+   "barrel_shots": 6
+  },
+  {
+   "seed": 177,
+   "survived": 90.0,
+   "kills": 38,
+   "acc": 43.1,
+   "dmg_barrel": 0,
+   "dmg_contact": 46,
+   "barrel_shots": 7
+  },
+  {
+   "seed": 203,
+   "survived": 90.0,
+   "kills": 45,
+   "acc": 35.5,
+   "dmg_barrel": 0,
+   "dmg_contact": 18,
+   "barrel_shots": 8
+  }
+ ],
+ "note": "backfilled from the benchmark log"
+}

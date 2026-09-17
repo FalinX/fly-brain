@@ -1,0 +1,97 @@
+{
+ "version": "v1",
+ "label": "v1 \u00b7 hand-coded",
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203
+ ],
+ "seconds": 90.0,
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 83.4,
+   "kills": 39,
+   "acc": null
+  },
+  {
+   "seed": 11,
+   "survived": 77.4,
+   "kills": 38,
+   "acc": null
+  },
+  {
+   "seed": 23,
+   "survived": 84.5,
+   "kills": 35,
+   "acc": null
+  },
+  {
+   "seed": 41,
+   "survived": 29.5,
+   "kills": 9,
+   "acc": null
+  },
+  {
+   "seed": 57,
+   "survived": 90.0,
+   "kills": 43,
+   "acc": null
+  },
+  {
+   "seed": 63,
+   "survived": 90.0,
+   "kills": 31,
+   "acc": null
+  },
+  {
+   "seed": 88,
+   "survived": 53.8,
+   "kills": 24,
+   "acc": null
+  },
+  {
+   "seed": 101,
+   "survived": 58.2,
+   "kills": 22,
+   "acc": null
+  },
+  {
+   "seed": 119,
+   "survived": 90.0,
+   "kills": 39,
+   "acc": null
+  },
+  {
+   "seed": 144,
+   "survived": 90.0,
+   "kills": 39,
+   "acc": null
+  },
+  {
+   "seed": 177,
+   "survived": 68.8,
+   "kills": 36,
+   "acc": null
+  },
+  {
+   "seed": 203,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": null
+  }
+ ],
+ "note": "backfilled from the session log; accuracy was not recorded per seed in this run",
+ "summary_reported": {
+  "acc_mean": 18.7
+ }
+}

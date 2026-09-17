@@ -1,0 +1,94 @@
+{
+ "version": "v3",
+ "label": "v3 \u00b7 + DAgger",
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203
+ ],
+ "seconds": 90.0,
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 59.9,
+   "kills": 40,
+   "acc": 25.7
+  },
+  {
+   "seed": 11,
+   "survived": 90.0,
+   "kills": 62,
+   "acc": 37.4
+  },
+  {
+   "seed": 23,
+   "survived": 76.2,
+   "kills": 46,
+   "acc": 27.0
+  },
+  {
+   "seed": 41,
+   "survived": 90.0,
+   "kills": 62,
+   "acc": 30.2
+  },
+  {
+   "seed": 57,
+   "survived": 90.0,
+   "kills": 62,
+   "acc": 29.2
+  },
+  {
+   "seed": 63,
+   "survived": 90.0,
+   "kills": 61,
+   "acc": 28.7
+  },
+  {
+   "seed": 88,
+   "survived": 90.0,
+   "kills": 58,
+   "acc": 35.6
+  },
+  {
+   "seed": 101,
+   "survived": 73.5,
+   "kills": 45,
+   "acc": 26.4
+  },
+  {
+   "seed": 119,
+   "survived": 90.0,
+   "kills": 57,
+   "acc": 23.8
+  },
+  {
+   "seed": 144,
+   "survived": 55.8,
+   "kills": 35,
+   "acc": 17.3
+  },
+  {
+   "seed": 177,
+   "survived": 90.0,
+   "kills": 62,
+   "acc": 21.0
+  },
+  {
+   "seed": 203,
+   "survived": 90.0,
+   "kills": 62,
+   "acc": 27.6
+  }
+ ],
+ "note": "backfilled from the session log"
+}

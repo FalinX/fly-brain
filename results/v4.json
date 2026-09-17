@@ -1,0 +1,130 @@
+{
+ "version": "v4",
+ "label": "v4 \u00b7 retinotopic + dodge",
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203
+ ],
+ "seconds": 90.0,
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 34.5,
+   "kills": 17,
+   "acc": 12.3,
+   "dmg_barrel": 104,
+   "dmg_contact": 0,
+   "barrel_shots": 18
+  },
+  {
+   "seed": 11,
+   "survived": 71.4,
+   "kills": 44,
+   "acc": 19.6,
+   "dmg_barrel": 104,
+   "dmg_contact": 19,
+   "barrel_shots": 33
+  },
+  {
+   "seed": 23,
+   "survived": 71.9,
+   "kills": 33,
+   "acc": 20.6,
+   "dmg_barrel": 0,
+   "dmg_contact": 100,
+   "barrel_shots": 19
+  },
+  {
+   "seed": 41,
+   "survived": 34.5,
+   "kills": 17,
+   "acc": 12.5,
+   "dmg_barrel": 104,
+   "dmg_contact": 0,
+   "barrel_shots": 20
+  },
+  {
+   "seed": 57,
+   "survived": 33.9,
+   "kills": 20,
+   "acc": 14.2,
+   "dmg_barrel": 130,
+   "dmg_contact": 0,
+   "barrel_shots": 21
+  },
+  {
+   "seed": 63,
+   "survived": 80.7,
+   "kills": 47,
+   "acc": 28.5,
+   "dmg_barrel": 104,
+   "dmg_contact": 17,
+   "barrel_shots": 33
+  },
+  {
+   "seed": 88,
+   "survived": 40.1,
+   "kills": 20,
+   "acc": 18.2,
+   "dmg_barrel": 104,
+   "dmg_contact": 0,
+   "barrel_shots": 24
+  },
+  {
+   "seed": 101,
+   "survived": 72.0,
+   "kills": 45,
+   "acc": 22.7,
+   "dmg_barrel": 104,
+   "dmg_contact": 9,
+   "barrel_shots": 30
+  },
+  {
+   "seed": 119,
+   "survived": 57.5,
+   "kills": 31,
+   "acc": 16.2,
+   "dmg_barrel": 104,
+   "dmg_contact": 0,
+   "barrel_shots": 22
+  },
+  {
+   "seed": 144,
+   "survived": 41.8,
+   "kills": 23,
+   "acc": 22.1,
+   "dmg_barrel": 104,
+   "dmg_contact": 19,
+   "barrel_shots": 23
+  },
+  {
+   "seed": 177,
+   "survived": 85.9,
+   "kills": 53,
+   "acc": 29.1,
+   "dmg_barrel": 78,
+   "dmg_contact": 22,
+   "barrel_shots": 38
+  },
+  {
+   "seed": 203,
+   "survived": 90.0,
+   "kills": 60,
+   "acc": 38.3,
+   "dmg_barrel": 26,
+   "dmg_contact": 43,
+   "barrel_shots": 35
+  }
+ ],
+ "note": "backfilled from the benchmark log"
+}

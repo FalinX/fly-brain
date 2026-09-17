@@ -35,7 +35,7 @@ always clear which is which.
 
 ---
 
-## Eight versions, measured the same way
+## Nine versions, measured the same way
 
 Every number below is 12 arenas × 90 s, identical seeds for every version,
 solo, unlimited ammo.
@@ -50,6 +50,7 @@ solo, unlimited ammo.
 | **v6** new eyes, old legs | bearing-resolved | aim + flee | reverse | fixed cone | 90.0 ± 0.0 | 39.3 ± 5.3 | **38.1%** |
 | **v7** tighter barrel rule ⭐ | bearing-resolved | aim + flee | reverse | true geometry | **89.9 ± 0.2** | **43.8 ± 2.8** | 31.7% |
 | **v8** DAgger round 2 | bearing-resolved | refit on v7's states | reverse | true geometry | 86.7 ± 11.1 | 41.0 ± 8.6 | 29.1% |
+| **v9** two flies voting | bearing-resolved | 2 copies averaged | reverse | true geometry | 90.0 ± 0.0 | 43.0 ± 4.6 | 31.8% |
 | _baseline_ 3-rule script | — | — | — | — | 77.0 ± 20.7 | 55.8 ± 16.6 | 58.1% |
 
 ⭐ **v7 is the default.** Not the newest — the best measured.
@@ -156,6 +157,16 @@ in the repo so that result is on the record, but `versions.py` defaults to v7.
 One thing did change: with v7 driving, the collector recorded **0 deaths**
 across six 60-second runs, against four or five in every earlier round.
 
+**v7 → v9. Voting cancels real noise, and it does not help.**
+Two copies of v7, same wiring, different noise. They genuinely disagree — the
+turn sign differs on 26.7% of frames, the flee decision on 11.5% — so averaging
+is doing something. It just makes no difference: survival +0.08 s (t = +1.00),
+kills −0.75 (t = −0.48), at 2.3× the compute. What limits this pilot is bias,
+not variance; you cannot average your way out of a readout that points the
+right way 84% of the time. fly.ai saw 63% → 72% from eight-copy voting because
+theirs read *one neuron per side*, where noise dominates. Pooling 1,314
+descending neurons is already a lot of averaging.
+
 ---
 
 ## Run it
@@ -247,9 +258,9 @@ encoder or the targets.
   rounds on states where escaping actually matters, or the descending
   population genuinely does not carry a usable direction and the hand rule is
   the honest answer.
-* **Ensemble voting.** fly.ai measured chase going 63% → 72% with eight copies
-  voting. `ensemble.py` implements it but has not been benchmarked here,
-  because two copies is all the frame budget allows on CPU.
+* ~~Ensemble voting~~ — measured (v9 above), no effect on the trained readout.
+  The open version of this question is whether it helps **v1**, which reads
+  four cells and should be noise-limited in a way v7 is not.
 * **The optic lobe is still dead weight.** All 95,501 of its neurons sit at
   0.6–0.8 Hz while the encoder injects straight into the ~720 detector cells.
   Driving the 6,006 photoreceptors instead was measured and the signal does not

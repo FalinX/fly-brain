@@ -1,0 +1,97 @@
+{
+ "version": "baseline_script",
+ "label": "3-rule script",
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203
+ ],
+ "seconds": 90.0,
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 67.3,
+   "kills": 49,
+   "acc": null
+  },
+  {
+   "seed": 11,
+   "survived": 32.8,
+   "kills": 23,
+   "acc": null
+  },
+  {
+   "seed": 23,
+   "survived": 34.0,
+   "kills": 20,
+   "acc": null
+  },
+  {
+   "seed": 41,
+   "survived": 90.0,
+   "kills": 72,
+   "acc": null
+  },
+  {
+   "seed": 57,
+   "survived": 90.0,
+   "kills": 63,
+   "acc": null
+  },
+  {
+   "seed": 63,
+   "survived": 90.0,
+   "kills": 69,
+   "acc": null
+  },
+  {
+   "seed": 88,
+   "survived": 85.5,
+   "kills": 63,
+   "acc": null
+  },
+  {
+   "seed": 101,
+   "survived": 90.0,
+   "kills": 64,
+   "acc": null
+  },
+  {
+   "seed": 119,
+   "survived": 90.0,
+   "kills": 63,
+   "acc": null
+  },
+  {
+   "seed": 144,
+   "survived": 74.2,
+   "kills": 51,
+   "acc": null
+  },
+  {
+   "seed": 177,
+   "survived": 90.0,
+   "kills": 66,
+   "acc": null
+  },
+  {
+   "seed": 203,
+   "survived": 90.0,
+   "kills": 66,
+   "acc": null
+  }
+ ],
+ "note": "backfilled from the session log; accuracy was not recorded per seed in this run",
+ "summary_reported": {
+  "acc_mean": 58.1
+ }
+}

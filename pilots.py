@@ -361,6 +361,32 @@ class FlyPilot:
     def act(self, obs):
         self.encode_last = self.encode(obs)
         self.brain_step(self.encode_last)
+        return self.decode(obs)
+
+    def clone(self, seed):
+        """Another fly with the same wiring and its own noise.
+
+        The weight arrays, the detector index tables and the readout are shared
+        by reference — they are never written to — so N copies cost N times the
+        compute but only one copy of the 205 MB matrix.
+        """
+        f = FlyPilot.__new__(FlyPilot)
+        f.__dict__.update(self.__dict__)
+        f.rng = np.random.default_rng(seed)
+        f.v = np.zeros(self.n, np.float32)
+        f.fired = np.zeros(0, np.int64)
+        f.hist = []
+        f.dn_trace = np.zeros(len(self.dn_idx), np.float32)
+        f.steer_ema = 0.0
+        f.fleeing = False
+        f.esc_dir = None
+        f.blocked = 0.0
+        f.trace = dict(self.trace)
+        f.see = {}
+        f.encode_last = {}
+        return f
+
+    def decode(self, obs):
 
         sl, sr = self.rate("steer_L"), self.rate("steer_R")
         esc = 0.5 * (self.rate("escape_L") + self.rate("escape_R"))

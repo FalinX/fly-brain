@@ -1,0 +1,130 @@
+{
+ "version": "v7",
+ "label": "v7 \u00b7 tighter barrel rule",
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203
+ ],
+ "seconds": 90.0,
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 30.5,
+   "dmg_barrel": 0,
+   "dmg_contact": 19,
+   "barrel_shots": 10
+  },
+  {
+   "seed": 11,
+   "survived": 89.1,
+   "kills": 47,
+   "acc": 27.0,
+   "dmg_barrel": 26,
+   "dmg_contact": 75,
+   "barrel_shots": 14
+  },
+  {
+   "seed": 23,
+   "survived": 90.0,
+   "kills": 41,
+   "acc": 29.1,
+   "dmg_barrel": 0,
+   "dmg_contact": 42,
+   "barrel_shots": 10
+  },
+  {
+   "seed": 41,
+   "survived": 90.0,
+   "kills": 45,
+   "acc": 27.4,
+   "dmg_barrel": 0,
+   "dmg_contact": 1,
+   "barrel_shots": 8
+  },
+  {
+   "seed": 57,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 39.6,
+   "dmg_barrel": 0,
+   "dmg_contact": 51,
+   "barrel_shots": 8
+  },
+  {
+   "seed": 63,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 25.3,
+   "dmg_barrel": 0,
+   "dmg_contact": 44,
+   "barrel_shots": 6
+  },
+  {
+   "seed": 88,
+   "survived": 90.0,
+   "kills": 47,
+   "acc": 31.9,
+   "dmg_barrel": 0,
+   "dmg_contact": 0,
+   "barrel_shots": 11
+  },
+  {
+   "seed": 101,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 28.9,
+   "dmg_barrel": 26,
+   "dmg_contact": 44,
+   "barrel_shots": 13
+  },
+  {
+   "seed": 119,
+   "survived": 90.0,
+   "kills": 44,
+   "acc": 30.9,
+   "dmg_barrel": 26,
+   "dmg_contact": 44,
+   "barrel_shots": 10
+  },
+  {
+   "seed": 144,
+   "survived": 90.0,
+   "kills": 36,
+   "acc": 44.8,
+   "dmg_barrel": 0,
+   "dmg_contact": 18,
+   "barrel_shots": 5
+  },
+  {
+   "seed": 177,
+   "survived": 90.0,
+   "kills": 46,
+   "acc": 30.6,
+   "dmg_barrel": 0,
+   "dmg_contact": 15,
+   "barrel_shots": 14
+  },
+  {
+   "seed": 203,
+   "survived": 90.0,
+   "kills": 43,
+   "acc": 34.5,
+   "dmg_barrel": 0,
+   "dmg_contact": 52,
+   "barrel_shots": 12
+  }
+ ],
+ "note": "backfilled from the benchmark log"
+}
