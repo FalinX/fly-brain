@@ -54,7 +54,8 @@ def make_pilot(kind):
         v = VERSION or versions.get("")
         return FlyPilot(readout=v["readout"], encoder=v["encoder"],
                         barrel_gate=v.get("barrel_gate", "none"),
-                        escape_mode=v.get("escape_mode", "hand"), label=v["id"])
+                        escape_mode=v.get("escape_mode", "hand"),
+                        move_mode=v.get("move_mode", "reverse"), label=v["id"])
     if kind == "script":
         return ScriptPilot()
     if kind == "human":
@@ -216,13 +217,15 @@ def main():
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--speed", type=float, default=1.0, help="wall-clock multiplier")
     ap.add_argument("--fly", default="", help="fly version id, e.g. v1 v2 v3 v4")
+    ap.add_argument("--barrels", type=int, default=0,
+                    help="explosive barrels on the map (0 = none, benchmarks used 7)")
     a = ap.parse_args()
 
     global VERSION
     VERSION = versions.get(a.fly)
     print(f"fly version: {VERSION['id']} — {VERSION['headline']}")
     n = 1 if a.p2 == "none" else 2
-    g = Game(n_players=n, seed=a.seed)
+    g = Game(n_players=n, seed=a.seed, n_barrels=a.barrels)
     pilots = [make_pilot(a.p1)] + ([make_pilot(a.p2)] if n == 2 else [])
 
     pygame.init()

@@ -1,0 +1,50 @@
+v13: make survival the objective, and find the fly was using the wrong half
+
+Stated plainly - survive as long as possible - the numbers already on file said
+the effort had gone into the wrong half of the pilot. Three baselines run to
+death reframed it:
+
+  hand-written kiter, no brain at all   216.0 s   wave 7.9   113 kills
+  v7                                    156.5 s   wave 6.9    88 kills
+  the same kiter, never shooting        114.9 s   wave 1.0     0 kills
+
+The player moves at 185 px/s against a walker 52 and a devil 92, so nothing on
+the map can catch a mover, and v7 was not using that: a repulsion rule with no
+connectome in it beats it by 60 s and the whole gap is movement. The third row
+is the other half - a kiter that never fires is stuck on wave 1 forever,
+because the game only advances once the board is clear, so it accumulates
+zombies until cornered. Killing here is crowd control and it is worth 101 s.
+
+v13 splits the job: movement by repulsion (HAND), standoff radius from DNp01
+rate (BRAIN), aim from the readout (BRAIN), trigger by line-of-fire geometry
+(HAND).
+
+  v13   197.4 +/- 47.0 s   wave 7.9   110.0 kills   42.7% hit
+
+  v13 - v7      survival  +40.9 s  (t = +3.11)  better in 16/24
+  v13 - v7      kills     +21.5    (t = +2.22)
+  v13 - kiter   survival  -18.7 s  (t = -0.96)  level
+  v13 - kiter   kills      -3.0    (t = -0.24)  level
+
+v13 and the kiter have byte-identical legs and differ only in the eyes: the
+kiter turns on the true bearing from the game, v13 on a linear readout of 1,314
+descending neurons. That readout hits 42.7% where perfect aim hits 63.2% and it
+costs nothing measurable in survival. Aim had stopped being the binding
+constraint two versions earlier and nobody had checked.
+
+Also in this commit:
+
+Barrels are a setting now, Game(n_barrels=...), because they were asked to be
+taken off the live map. server.py and play.py default to none; every benchmark
+table stays at 7 so it remains comparable. Measured on v7: removing them is
+worth +20.0 s of survival (t = +1.70) and +34.6 kills (t = +3.74).
+
+Contact-range behaviour measured over 9,195 frames, because it looked from the
+outside like the fly goes blind when something touches it. It does not: every
+detector sits at or near its 0.8 ceiling and it is trying to flee on 80.7% of
+those frames. What actually goes wrong is that the barrel rule gags the gun on
+40% of them and it is facing 61 degrees off the thing touching it, so a rule
+that reverses along the body axis reverses the wrong way. v13 movement does not
+depend on facing.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

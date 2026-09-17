@@ -92,7 +92,8 @@ class Player:
 
 # ---------------------------------------------------------------- world
 class Game:
-    def __init__(self, n_players: int = 2, seed: int = 7, start_wave: int = 0):
+    def __init__(self, n_players: int = 2, seed: int = 7, start_wave: int = 0,
+                 n_barrels: int = 7):
         """start_wave lets a collector drop straight into a crowded board.
         Escaping only decides anything once there are enough zombies to be
         surrounded by, and those frames are rare if every run starts at wave 1."""
@@ -111,11 +112,12 @@ class Game:
         self.barrels: list[Barrel] = []
         self.booms: list[Boom] = []
         self.over = False
+        self.n_barrels = n_barrels
         self._seed_barrels()
 
     # ------------------------------------------------------------ setup
     def _seed_barrels(self):
-        for _ in range(7):
+        for _ in range(self.n_barrels):
             self.barrels.append(Barrel(
                 self.rng.uniform(WALL + 60, ARENA_W - WALL - 60),
                 self.rng.uniform(WALL + 60, ARENA_H - WALL - 60)))
@@ -124,7 +126,7 @@ class Game:
         self.wave += 1
         self.spawn_queue = 5 + int(self.wave * 2.6)
         self.spawn_cd = 0.0
-        while len(self.barrels) < 7:
+        while len(self.barrels) < self.n_barrels:
             self.barrels.append(Barrel(
                 self.rng.uniform(WALL + 60, ARENA_W - WALL - 60),
                 self.rng.uniform(WALL + 60, ARENA_H - WALL - 60)))

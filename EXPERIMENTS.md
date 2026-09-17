@@ -31,6 +31,7 @@ neurons, 25,582,938 synapses, zero trained weights. What changes is the
 | v8 | retinotopic | + DAgger round 2 | reverse | true geometry | 86.7 ± 11.1 | 41.0 ± 8.6 | 29.1% | 11/12 |
 | v9 | retinotopic | 2 copies voting | reverse | true geometry | 90.0 ± 0.0 | 43.0 ± 4.6 | 31.8% | 12/12 |
 | v10 | retinotopic | escape refit on crowds | hybrid | true geometry | _survival: 136.0 ± 35.1 s, 20 s worse than v7_ | | | |
+| **v13** ⭐ | retinotopic | aim + standoff | kite (hand) | true geometry | _survival: **197.4 ± 47.0 s**, wave 7.9, 110 kills_ | | | |
 | _script_ | — | — | — | — | 77.0 ± 20.7 | 55.8 ± 16.6 | 58.1% | 7/12 |
 
 ---
@@ -420,6 +421,95 @@ cause cannot be ruled out in favour of "the signal is not good enough".
 **Standing conclusion.** The descending population does not appear to carry
 escape direction well enough to beat reversing. Kept in the repo; `versions.py`
 still defaults to v7.
+
+---
+
+## v13 — the objective changed to staying alive
+
+Up to here the target was implicitly "play well". Stated plainly — *survive as
+long as possible* — the measurements already on file said the effort had been
+going into the wrong half of the pilot.
+
+**Three baselines, run to death, that reframed everything.**
+
+| | survived | wave | kills | hit rate |
+|---|---|---|---|---|
+| hand-written kiter, **no brain at all** | 216.0 ± 57.7 s | 7.9 | 113.0 | 63.2% |
+| v7 | 156.5 ± 40.9 s | 6.9 | 88.5 | 41.1% |
+| the same kiter, **never shooting** | 114.9 ± 10.6 s | **1.0** | 0.0 | — |
+
+The player moves at 185 px/s against a walker's 52 and a devil's 92, so nothing
+on the map can catch a mover — and v7 was not using that. A repulsion rule with
+no connectome in it beats v7 by 60 s, and the whole gap is movement.
+
+The third row is the other half. A kiter that never fires is stuck on **wave 1
+forever**, because the game only advances a wave once the board is clear; the
+zombies pile up until it is cornered, at 114.9 s. Killing here is not scoring,
+it is crowd control, and it is worth 101 seconds.
+
+**v13** therefore splits the job by what each side is good at:
+
+| | who |
+|---|---|
+| movement — repulsion from every zombie at once, plus walls | HAND |
+| how much room to keep — DNp01's rate sets the standoff radius, 260-570 px | BRAIN |
+| aim | BRAIN |
+| trigger — line-of-fire geometry | HAND |
+
+**Result** · 24 arenas, run to death · **197.4 ± 47.0 s** · wave 7.9 · 110.0 kills
+
+| paired | difference | t | better in |
+|---|---|---|---|
+| v13 − v7, survival | **+40.9 s** | **+3.11** | 16/24 |
+| v13 − v7, kills | +21.5 | +2.22 | 15/24 |
+| v13 − kiter, survival | −18.7 s | −0.96 | 11/24 |
+| v13 − kiter, kills | −3.0 | −0.24 | 11/24 |
+
+**Read.** v13 is a clear advance on v7 and **statistically indistinguishable
+from the hand-written ceiling** — same wave, three fewer kills, eighteen
+seconds inside a standard error of nineteen.
+
+The comparison that matters is v13 against the kiter, because their legs are
+byte-identical and only the eyes differ: the kiter turns using the true bearing
+straight from the game, v13 using a linear readout of 1,314 descending neurons.
+That readout hits 42.7% where perfect aim hits 63.2%, **and it costs nothing
+measurable in survival.** Aim had stopped being the binding constraint two
+versions earlier and nobody had checked.
+
+Best single run 272.2 s, wave 10.
+
+### Barrels
+
+Measured separately, since they were taken off the live map on request:
+
+| v7 | survived | wave | kills |
+|---|---|---|---|
+| with 7 barrels | 156.5 ± 41 s | 6.9 | 88.5 |
+| with none | 176.4 ± 31 s | 8.5 | 123.2 |
+
+Paired: survival +20.0 s (t = +1.70), kills **+34.6 (t = +3.74)**. They cost
+kills far more clearly than survival, because the line-of-fire rule gags the
+gun on 40% of contact-range frames. `Game(n_barrels=...)`; the benchmark tables
+are all at 7 so they stay comparable, while `server.py` and `play.py` default
+to none.
+
+### What actually happens at contact range
+
+9,195 frames of v7, split by distance to the nearest zombie:
+
+| nearest | frames | firing | fleeing | threat | loom | chase | gagged by the barrel rule |
+|---|---|---|---|---|---|---|---|
+| touching, <30 px | 259 | 59.8% | 80.7% | 0.79 | 0.77 | 0.79 | 40.2% |
+| 30-60 | 488 | 54.3% | 84.6% | 0.77 | 0.80 | 0.79 | 45.7% |
+| 120-250 | 5,253 | 65.2% | 33.6% | 0.26 | 0.68 | 0.79 | 34.8% |
+| >250 | 1,632 | 80.6% | 0.7% | 0.01 | 0.31 | 0.73 | 19.4% |
+
+It is not blind at contact — every detector sits at or near its 0.8 ceiling —
+and it is trying to flee on 80.7% of those frames. Two other things go wrong:
+the barrel rule gags it on 40% of them, and it is facing **61° off** the thing
+touching it, inside aim tolerance on only 17%. Because the pre-v13 escape rule
+reverses along the body axis, facing wrong means fleeing wrong. v13's repulsion
+does not depend on facing at all, which is part of why it works.
 
 ---
 

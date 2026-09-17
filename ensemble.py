@@ -89,6 +89,7 @@ def build(version, n=2, quiet=False):
     base = FlyPilot(readout=version["readout"], encoder=version["encoder"],
                     barrel_gate=version.get("barrel_gate", "none"),
                     escape_mode=version.get("escape_mode", "hand"),
+                    move_mode=version.get("move_mode", "reverse"),
                     label=version["id"], quiet=quiet)
     if n <= 1:
         return base

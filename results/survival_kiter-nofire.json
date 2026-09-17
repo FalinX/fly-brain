@@ -1,0 +1,443 @@
+{
+ "version": "kiter-nofire",
+ "label": "kiter that never shoots",
+ "mode": "until death",
+ "hard_cap_s": 1800.0,
+ "n_barrels": 7,
+ "seeds": [
+  7,
+  11,
+  23,
+  41,
+  57,
+  63,
+  88,
+  101,
+  119,
+  144,
+  177,
+  203,
+  5,
+  19,
+  37,
+  52,
+  71,
+  96,
+  113,
+  128,
+  151,
+  166,
+  188,
+  211
+ ],
+ "runs": [
+  {
+   "seed": 7,
+   "survived": 113.0,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 11,
+   "survived": 114.8,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 23,
+   "survived": 116.5,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 41,
+   "survived": 106.4,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 102,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 57,
+   "survived": 123.3,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 63,
+   "survived": 111.8,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 102,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 88,
+   "survived": 117.0,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 103,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 101,
+   "survived": 107.8,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 119,
+   "survived": 113.7,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 144,
+   "survived": 124.5,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 177,
+   "survived": 102.4,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 100,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 203,
+   "survived": 140.4,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 5,
+   "survived": 101.6,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 19,
+   "survived": 106.6,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 102,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 37,
+   "survived": 100.4,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 103,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 52,
+   "survived": 106.2,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 71,
+   "survived": 121.8,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 103,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 96,
+   "survived": 127.6,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 102,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 113,
+   "survived": 136.1,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 103,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 128,
+   "survived": 118.5,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 151,
+   "survived": 120.0,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 101,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 166,
+   "survived": 104.9,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 102,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 188,
+   "survived": 121.0,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 103,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  },
+  {
+   "seed": 211,
+   "survived": 100.2,
+   "wave": 1,
+   "kills": 0,
+   "score": 0,
+   "acc": 0.0,
+   "dmg_barrel": 0,
+   "dmg_contact": 103,
+   "barrel_shots": 0,
+   "hp_entering_wave": {
+    "0": 100.0,
+    "1": 100.0
+   },
+   "ms_med": 0.01,
+   "capped": false
+  }
+ ]
+}

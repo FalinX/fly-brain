@@ -26,19 +26,29 @@ timing was unknown.
 
 Run to death, 24 arenas, waves escalating without limit:
 
-| | survived | median | wave reached | kills | hit rate |
+| | survived | median | wave | kills | hit rate |
 |---|---|---|---|---|---|
-| **v7 — the connectome** | **156.5 ± 40.9 s** | 147.8 s | 6.9 | 88.5 | 41.1% |
+| hand-written kiter, no brain — the ceiling | 216.0 ± 57.7 s | 214.8 s | 7.9 | 113.0 | 63.2% |
+| **v13 — kiter legs, connectome eyes** | **197.4 ± 47.0 s** | 201.3 s | 7.9 | 110.0 | 42.7% |
+| v7 — connectome, reverse-away movement | 156.5 ± 40.9 s | 147.8 s | 6.9 | 88.5 | 41.1% |
 | 3-rule script, same barrel check | 104.4 ± 29.5 s | 105.2 s | 5.5 | 60.4 | 66.2% |
+| the same kiter, never shooting | 114.9 ± 10.6 s | 114.2 s | **1.0** | 0.0 | — |
 
-Paired over the same arenas: **+52.1 s, t = +4.81, df = 23**, longer in 19 of
-24, and +28.1 kills. Best single run: **253 s, wave 10**, against the script's
-best of 157 s.
+**A fly with a gun lasts about three and a quarter minutes, reaches wave 8 and
+kills 110 zombies.** Best single run 272 s, wave 10.
 
-**A fly with a gun lasts about two and a half minutes, reaches wave 7 and kills
-88 zombies — roughly 50% longer than a hand-written bot, while aiming far
-worse (41% against 66%).** It wins by not being touched, which is exactly what
-a fly is for.
+Two comparisons say what is doing the work. Against the 3-rule script it is
+**+93 s**. Against the hand-written kiter — identical legs, the only difference
+being that the kiter turns on the true bearing straight from the game while v13
+turns on a linear readout of 1,314 descending neurons — it is **−18.7 s
+(t = −0.96), statistically level**, while hitting 42.7% against the kiter's
+63.2%. Aiming two thirds as well costs nothing measurable once the movement is
+right.
+
+The last row is why aim matters at all: a kiter that never fires is stuck on
+wave 1 forever, because the game only advances once the board is clear. It
+accumulates zombies until it is cornered, at 114.9 s. Killing here is crowd
+control, and it is worth 101 seconds.
 
 How it dies, from the per-wave health log: untouched through waves 1–3
 (100 → 97 HP), bleeding from wave 4, gone by wave 6–8, and the damage is
@@ -47,8 +57,10 @@ Wave *N* spawns 5 + 2.6*N* zombies from every edge, and the escape rule —
 reverse away from whatever it is facing — is perfect against one attacker and
 useless against twenty.
 
-    python survive.py v7              # run until it dies, 24 arenas
-    python survive.py script+barrel   # the fair baseline
+    python survive.py v13             # run until it dies, 24 arenas
+    python survive.py kiter           # the no-brain ceiling
+    python survive.py kiter-nofire    # what happens when nothing dies
+    python survive.py v13 24 0        # same, with no barrels on the map
 
 ---
 

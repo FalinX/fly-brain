@@ -57,6 +57,60 @@ class ScriptPilot:
         return {"move": (-back, 0.0), "turn": turn, "fire": fire, "swap": False}
 
 
+class KiterPilot:
+    """No brain at all. The ceiling for this arena, written by hand.
+
+    The player moves at 185 px/s, a walker at 52 and a devil at 92, so nothing
+    on the map can catch a mover. This pilot exists to answer one question
+    before any more effort goes into the fly: how long does survival-first play
+    last if the movement is simply correct?
+
+    Repulsion from every zombie weighted by 1/distance, repulsion from walls,
+    and it shoots only when something already lines up, because turning to aim
+    is what stops a kiter from kiting.
+    """
+    name = "kiter"
+
+    def __init__(self, barrel_gate=True, shoot=True):
+        self.barrel_gate = barrel_gate
+        self.shoot = shoot
+
+    def act(self, obs):
+        from game import ARENA_W, ARENA_H, WALL
+        p = obs["self"]
+        zs = obs["zombies"]
+        vx = vy = 0.0
+        for z in zs:
+            if z["dist"] < 420:
+                w = (420.0 - z["dist"]) / 420.0
+                w = w * w * (1.6 if z["kind"] == "devil" else 1.0)
+                vx -= math.cos(z["rel"]) * w
+                vy -= math.sin(z["rel"]) * w
+        # walls push in body frame
+        rx = (max(0.0, 1 - (p.x - WALL) / 190.0)
+              - max(0.0, 1 - (ARENA_W - WALL - p.x) / 190.0))
+        ry = (max(0.0, 1 - (p.y - WALL) / 190.0)
+              - max(0.0, 1 - (ARENA_H - WALL - p.y) / 190.0))
+        ca, sa = math.cos(p.aim), math.sin(p.aim)
+        vx += 2.2 * (rx * ca + ry * sa)
+        vy += 2.2 * (-rx * sa + ry * ca)
+        n = math.hypot(vx, vy)
+        move = (vx / n, vy / n) if n > 1e-6 else (0.0, 0.0)
+
+        z = min(zs, key=lambda q: q["dist"]) if zs else None
+        turn = max(-6.5, min(6.5, z["rel"] * 6.0)) if z else 0.0
+        fire = bool(self.shoot and z and abs(z["rel"]) < 0.22)
+        if fire and self.barrel_gate:
+            spread = WEAPONS[p.weapon].spread
+            for b in obs["barrels"]:
+                if b["dist"] > 520 or abs(b["rel"]) > 1.2:
+                    continue
+                if b["dist"] * abs(math.sin(b["rel"])) < 11.0 + b["dist"] * spread + 6.0:
+                    fire = False
+                    break
+        return {"move": move, "turn": turn, "fire": fire, "swap": False}
+
+
 # --------------------------------------------------------------- human
 class HumanPilot:
     name = "human"
@@ -114,7 +168,7 @@ class FlyPilot:
 
     def __init__(self, dt=DT, seed=64, window=9, data=DATA, quiet=False,
                  readout=None, encoder='retino', label=None, barrel_gate='trained',
-                 escape_mode='trained'):
+                 escape_mode='trained', move_mode='reverse'):
         z = np.load(os.path.join(data, "brain.npz"), allow_pickle=True)
         W = sparse.load_npz(os.path.join(data, "weights.npz")).tocsc()
         self.indptr, self.indices, self.weights = W.indptr, W.indices, W.data
@@ -192,6 +246,7 @@ class FlyPilot:
         self.encoder = encoder
         self.barrel_gate = barrel_gate
         self.escape_mode = escape_mode
+        self.move_mode = move_mode
         self.encode_last = {}
         self.see = {}
         self.last = {"move": (0.0, 0.0), "turn": 0.0, "fire": False, "swap": False}
@@ -443,42 +498,69 @@ class FlyPilot:
         elif esc <= self.ESCAPE_OFF:
             self.fleeing = False
 
-        # DODGE — where to go when it needs to leave.
-        # Untrained, it can only walk backwards along its body axis. With the
-        # trained escape readout it gets a direction, which is what a real
-        # escape is: aimed away from the looming stimulus, not simply reverse.
-        # "hybrid" is the honest reading of the measurements: the refitted
-        # escape readout is 54.2° off when the fly is surrounded against the
-        # shipped one's 63.3°, but on an open board it is no better than before
-        # and the reverse rule is already fine there. So use the readout only
-        # where it was trained and where the rule fails — inside a crowd.
-        use_trained = (self.escape_mode == "trained" or
-                       (self.escape_mode == "hybrid" and
-                        sum(1 for z in obs["zombies"] if z["dist"] < 250.0) >= 3))
-        if use_trained and self._has("esc_sin"):
+        # DODGE — where to go.
+        #
+        # "reverse" is what v1 through v12 used: back away along the body axis
+        # when DNp01 says something is close. It is right against one attacker
+        # and wrong inside a ring, and at contact range the fly is facing 61°
+        # off the thing touching it, so the direction it reverses along is not
+        # away from that thing.
+        #
+        # "kite" drops that and steers by repulsion from every zombie at once.
+        # It is a human rule and is labelled as one. The fly moves at 185 px/s
+        # against 52 and 92, so nothing on the map can catch a mover; a
+        # hand-written kiter reaches 216 s where v7 reaches 156.5 s, and that
+        # gap is all movement. DNp01 still has a job: its rate sets how much
+        # room the fly wants, so the brain decides the standoff distance.
+        from game import ARENA_W, ARENA_H, WALL
+        p = obs["self"]
+        if self.escape_mode == "trained" and self._has("esc_sin"):
+            esc_dir = math.atan2(self._ro("esc_sin"), self._ro("esc_cos"))
+            self.esc_dir = esc_dir
+        elif (self.escape_mode == "hybrid" and self._has("esc_sin") and
+              sum(1 for z in obs["zombies"] if z["dist"] < 250.0) >= 3):
             esc_dir = math.atan2(self._ro("esc_sin"), self._ro("esc_cos"))
             self.esc_dir = esc_dir
         else:
             esc_dir = None
             self.esc_dir = None
-        if self.fleeing:
-            fwd = -1.0 if esc_dir is None else math.cos(esc_dir)
+
+        if self.move_mode == "kite":
+            # BRAIN sets the radius: quiet DNp01 means hold a loose ring, a
+            # loud one means push everything further away
+            reach = 260.0 + 26.0 * min(esc, 12.0)
+            vx = vy = 0.0
+            for z in obs["zombies"]:
+                if z["dist"] < reach:
+                    w = (reach - z["dist"]) / reach
+                    w = w * w * (1.6 if z["kind"] == "devil" else 1.0)
+                    vx -= math.cos(z["rel"]) * w
+                    vy -= math.sin(z["rel"]) * w
+            rx = (max(0.0, 1 - (p.x - WALL) / 190.0)
+                  - max(0.0, 1 - (ARENA_W - WALL - p.x) / 190.0))
+            ry = (max(0.0, 1 - (p.y - WALL) / 190.0)
+                  - max(0.0, 1 - (ARENA_H - WALL - p.y) / 190.0))
+            ca, sa = math.cos(p.aim), math.sin(p.aim)
+            vx += 2.2 * (rx * ca + ry * sa)
+            vy += 2.2 * (-rx * sa + ry * ca)
+            n = math.hypot(vx, vy)
+            fwd, strafe = (vx / n, vy / n) if n > 1e-6 else (0.0, 0.0)
+            self.fleeing = n > 0.35
         else:
-            fwd = 0.35 if (obs["zombies"] and
-                           min(z["dist"] for z in obs["zombies"]) > 320) else 0.0
-        from game import ARENA_W, ARENA_H, WALL
-        p = obs["self"]
-        strafe = 0.0
-        if self.fleeing and esc_dir is not None:
-            # the trained heading already includes the wall push
-            strafe = math.sin(esc_dir)
-        elif self.fleeing:
-            # HAND fallback — do not reverse into a wall
-            rx = max(0.0, 1 - (p.x - WALL) / 140.0) - max(0.0, 1 - (ARENA_W - WALL - p.x) / 140.0)
-            ry = max(0.0, 1 - (p.y - WALL) / 140.0) - max(0.0, 1 - (ARENA_H - WALL - p.y) / 140.0)
-            if rx or ry:
-                ca, sa = math.cos(p.aim), math.sin(p.aim)
-                strafe = max(-1.0, min(1.0, (-rx * sa + ry * ca) * 1.6))
+            if self.fleeing:
+                fwd = -1.0 if esc_dir is None else math.cos(esc_dir)
+            else:
+                fwd = 0.35 if (obs["zombies"] and
+                               min(z["dist"] for z in obs["zombies"]) > 320) else 0.0
+            strafe = 0.0
+            if self.fleeing and esc_dir is not None:
+                strafe = math.sin(esc_dir)
+            elif self.fleeing:
+                rx = max(0.0, 1 - (p.x - WALL) / 140.0) - max(0.0, 1 - (ARENA_W - WALL - p.x) / 140.0)
+                ry = max(0.0, 1 - (p.y - WALL) / 140.0) - max(0.0, 1 - (ARENA_H - WALL - p.y) / 140.0)
+                if rx or ry:
+                    ca, sa = math.cos(p.aim), math.sin(p.aim)
+                    strafe = max(-1.0, min(1.0, (-rx * sa + ry * ca) * 1.6))
 
         # TRIGGER — ammo is unlimited, so it is held down, except when
         # something says an explosive barrel is in the line of fire. One blast

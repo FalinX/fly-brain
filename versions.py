@@ -200,12 +200,32 @@ VERSIONS = [
         "barrel_gate": "tight",
         "escape_mode": "hand",
     },
+    {
+        "id": "v13",
+        "label": "v13 · kiter legs, fly eyes",
+        "encoder": "retino",
+        "readout": "readout_dodge.npz",
+        "headline": "survival-first: move by repulsion, aim with the connectome",
+        "note": "The objective changed to staying alive. A hand-written kiter "
+                "with no brain at all reaches 216 s against v7's 156.5, and "
+                "that whole gap is movement — the fly outruns everything on "
+                "the map at 185 px/s and was not using it. v13 keeps the "
+                "connectome for aiming and hands movement to a repulsion rule, "
+                "labelled HAND. DNp01 still decides the standoff distance. "
+                "A kiter that never shoots dies at 114.9 s stuck on wave 1, so "
+                "the aim is not decoration: killing is what stops the board "
+                "filling up.",
+        "score": "197.4 s survival - wave 7.9 - 110 kills - level with the hand-written ceiling",
+        "barrel_gate": "tight",
+        "escape_mode": "hand",
+        "move_mode": "kite",
+    },
 ]
 
 # What `server.py` and `play.py` start on when no version is named. Not the
-# newest — the best measured. v8 exists to record that DAgger round 2 bought
-# nothing, not because it should be played.
-DEFAULT = "v7"
+# newest — the best measured against the current objective, staying alive.
+# v8, v9, v10, v11 and v12 record what did not work; they are not for playing.
+DEFAULT = "v13"
 
 
 def available():

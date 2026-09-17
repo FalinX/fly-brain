@@ -23,7 +23,7 @@ import numpy as np
 import versions
 import ensemble
 from game import Game, DT
-from pilots import ScriptPilot
+from pilots import ScriptPilot, KiterPilot
 
 # the twelve arenas every benchmark in this repo uses, plus a second block
 # added only for the survival question, because the headline claim was sitting
@@ -36,6 +36,11 @@ HARD_CAP = 1800.0        # 30 minutes; a safety net, not an expected outcome
 def build(vid):
     if vid == "script":
         return ScriptPilot(), {"id": "script", "label": "3-rule script"}
+    if vid == "kiter":
+        return KiterPilot(), {"id": "kiter", "label": "hand-written kiter, no brain"}
+    if vid == "kiter-nofire":
+        return (KiterPilot(shoot=False),
+                {"id": "kiter-nofire", "label": "kiter that never shoots"})
     if vid == "script+barrel":
         return (ScriptPilot(barrel_gate=True),
                 {"id": "script+barrel", "label": "3-rule script + v7's barrel check"})
@@ -43,8 +48,8 @@ def build(vid):
     return ensemble.build(v, n=v.get("flies", 1), quiet=False), v
 
 
-def run_until_death(pilot, seed):
-    g = Game(n_players=1, seed=seed)
+def run_until_death(pilot, seed, n_barrels=7):
+    g = Game(n_players=1, seed=seed, n_barrels=n_barrels)
     if hasattr(pilot, "reset"):
         pilot.reset()
     elif hasattr(pilot, "v"):
@@ -82,12 +87,13 @@ def run_until_death(pilot, seed):
 if __name__ == "__main__":
     vid = sys.argv[1] if len(sys.argv) > 1 else "v7"
     n = int(sys.argv[2]) if len(sys.argv) > 2 else len(SEEDS)
+    nb = int(sys.argv[3]) if len(sys.argv) > 3 else 7
     pilot, meta = build(vid)
     seeds = SEEDS[:n]
     rows = []
     t0 = time.time()
     for sd in seeds:
-        r = run_until_death(pilot, sd)
+        r = run_until_death(pilot, sd, nb)
         rows.append(r)
         print(f"seed {sd:3d}  {r['survived']:7.1f}s  wave {r['wave']:2d}  "
               f"{r['kills']:4d} kills  {r['acc']:5.1f}% acc  "
@@ -102,8 +108,9 @@ if __name__ == "__main__":
           f"   best {g('survived').max():.1f} s   worst {g('survived').min():.1f} s")
 
     os.makedirs("results", exist_ok=True)
-    out = f"results/survival_{meta['id']}.json"
+    out = (f"results/survival_{meta['id']}.json" if nb == 7
+           else f"results/survival_{meta['id']}_b{nb}.json")
     json.dump({"version": meta["id"], "label": meta.get("label", meta["id"]),
-               "mode": "until death", "hard_cap_s": HARD_CAP,
+               "mode": "until death", "hard_cap_s": HARD_CAP, "n_barrels": nb,
                "seeds": seeds, "runs": rows}, open(out, "w"), indent=1)
     print("wrote", out)

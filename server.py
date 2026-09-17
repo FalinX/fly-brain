@@ -39,7 +39,7 @@ REGIONS = [("optic L", "#38bdf8"), ("optic R", "#6366f1"),
            ("visual proj.", "#ef4444"), ("descending", "#fde047"),
            ("ascending", "#c084fc")]
 
-STATE = {"fly": None, "geom": None}
+STATE = {"fly": None, "geom": None, "barrels": 0}
 
 
 # ------------------------------------------------------------------ geometry
@@ -87,9 +87,9 @@ def load_geometry():
 
 # ------------------------------------------------------------------ session
 class Session:
-    def __init__(self, p1, p2, seed, version):
+    def __init__(self, p1, p2, seed, version, n_barrels=0):
         self.n = 1 if p2 == "none" else 2
-        self.g = Game(n_players=self.n, seed=seed)
+        self.g = Game(n_players=self.n, seed=seed, n_barrels=n_barrels)
         self.version = version
         self.pilots = [self._make(p1, version)]
         if self.n == 2:
@@ -114,6 +114,7 @@ class Session:
             fly.encoder = version["encoder"]
             fly.barrel_gate = version.get("barrel_gate", "none")
             fly.escape_mode = version.get("escape_mode", "hand")
+            fly.move_mode = version.get("move_mode", "reverse")
             if version["readout"]:
                 r = np.load(os.path.join(HERE, version["readout"]))
                 fly.ro = {k: r[k] for k in r.files}
@@ -207,7 +208,8 @@ async def ws_handler(request):
     await ws.prepare(request)
     q = request.query
     sess = Session(q.get("p1", "human"), q.get("p2", "fly"),
-                   int(q.get("seed", "7")), versions.get(q.get("fly", "")))
+                   int(q.get("seed", "7")), versions.get(q.get("fly", "")),
+                   n_barrels=int(q.get("barrels", STATE["barrels"])))
     geom = STATE["geom"]
 
     await ws.send_json({
@@ -267,11 +269,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8770)
     ap.add_argument("--fly", default="", help="which version to start on")
+    ap.add_argument("--barrels", type=int, default=0,
+                    help="explosive barrels on the map (0 = none, benchmarks used 7)")
     a = ap.parse_args()
 
     print("loading the connectome...")
     STATE["fly"] = FlyPilot(quiet=False)
     STATE["geom"] = load_geometry()
+    STATE["barrels"] = a.barrels
+    print(f"barrels on the map: {a.barrels}")
     print("fly versions available: " +
           ", ".join(v["id"] for v in versions.available()))
     print(f"{STATE['geom']['n']:,} neurons have a position and will be drawn")
