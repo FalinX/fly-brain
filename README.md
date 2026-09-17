@@ -16,6 +16,42 @@ descending neurons are saying, and how hard each part of its brain is working.
 
 ---
 
+## How long does a fly with a gun last?
+
+That is the actual question this repo exists to answer, and until the survival
+runs it could not be answered at all — every benchmark stopped at 90 s and the
+better versions hit that ceiling in nearly every arena, so the numbers were
+censored. Nothing in the game heals the player, so death is certain; only the
+timing was unknown.
+
+Run to death, 24 arenas, waves escalating without limit:
+
+| | survived | median | wave reached | kills | hit rate |
+|---|---|---|---|---|---|
+| **v7 — the connectome** | **156.5 ± 40.9 s** | 147.8 s | 6.9 | 88.5 | 41.1% |
+| 3-rule script, same barrel check | 104.4 ± 29.5 s | 105.2 s | 5.5 | 60.4 | 66.2% |
+
+Paired over the same arenas: **+52.1 s, t = +4.81, df = 23**, longer in 19 of
+24, and +28.1 kills. Best single run: **253 s, wave 10**, against the script's
+best of 157 s.
+
+**A fly with a gun lasts about two and a half minutes, reaches wave 7 and kills
+88 zombies — roughly 50% longer than a hand-written bot, while aiming far
+worse (41% against 66%).** It wins by not being touched, which is exactly what
+a fly is for.
+
+How it dies, from the per-wave health log: untouched through waves 1–3
+(100 → 97 HP), bleeding from wave 4, gone by wave 6–8, and the damage is
+zombie contact (74–103 HP) rather than its own barrels (0 in 12 of 12 runs).
+Wave *N* spawns 5 + 2.6*N* zombies from every edge, and the escape rule —
+reverse away from whatever it is facing — is perfect against one attacker and
+useless against twenty.
+
+    python survive.py v7              # run until it dies, 24 arenas
+    python survive.py script+barrel   # the fair baseline
+
+---
+
 ## What actually happens each frame
 
 ```

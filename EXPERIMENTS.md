@@ -34,6 +34,63 @@ neurons, 25,582,938 synapses, zero trained weights. What changes is the
 
 ---
 
+## The survival experiment — the question the project is actually asking
+
+*If zombies overran the world, how long would a fly with a gun last?*
+
+Every benchmark above stops at 90 s, and from v6 onward the fly hits that
+ceiling in almost every arena — so all of those survival figures are censored
+and this question had never been measured. Nothing in the game heals the
+player, so death is certain; only the timing was open.
+
+`survive.py` removes the limit. 24 arenas (the standard twelve plus a second
+block added because the headline claim sat at t = 2.25 on twelve alone), waves
+escalating indefinitely: wave *N* spawns 5 + 2.6*N* zombies, devils appear from
+wave 3 and reach 45% of spawns, zombie health rises 3 per wave.
+
+| | survived | median | wave | kills | hit rate | died to own barrels |
+|---|---|---|---|---|---|---|
+| **v7 connectome** | **156.5 ± 40.9 s** | 147.8 | 6.9 | 88.5 | 41.1% | 0/12 |
+| script + v7's barrel check | 104.4 ± 29.5 s | 105.2 | 5.5 | 60.4 | 66.2% | 0/12 |
+| script, as originally written | 101.4 ± 42.4 s | 107.1 | 6.2 | 78.1 | 61.1% | 4/12 |
+| v1, raw connectome, 4 cells | 83.4 ± 39.9 s | 80.4 | 4.1 | 37.5 | 18.6% | 10/12 |
+
+Paired, v7 against each baseline over identical arenas:
+
+| | difference | t | longer in |
+|---|---|---|---|
+| vs script + barrel check (n=24) | **+52.1 s** | **+4.81** | 19/24 |
+| vs script as written (n=12) | +47.3 s | +2.84 | 11/12 |
+| vs v1 (n=12) | +65.3 s | +3.17 | 10/12 |
+
+**Answer: about two and a half minutes, wave 7, 88 zombies — half again as
+long as a hand-written bot, with two thirds of its accuracy.** Best single run
+253 s and wave 10.
+
+*Fairness note:* the script as originally written has no barrel rule and kills
+itself in 4 of 12 runs, which flatters the fly. `script+barrel` gives the
+baseline the identical line-of-fire check and is the comparison quoted above.
+It still loses.
+
+**How it dies.** Per-wave health, logged in `results/survival_v7.json`:
+
+| entering wave | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| seed 7 | 100 | 97 | 97 | 97 | 81 | 41 | — | — |
+| seed 11 | 100 | 100 | 95 | 81 | 71 | 67 | 52 | 35 |
+| seed 23 | 100 | 100 | 97 | 80 | 64 | 59 | 36 | 10 |
+
+Untouched for three waves, then a steady bleed, and the damage is zombie
+contact (74–103 HP a run) rather than barrels (0 in 12 of 12). Wave 6 puts
+about twenty zombies on the map from every edge, and the escape rule — reverse
+away from whatever it is facing — is perfect against one attacker and useless
+against a ring of them.
+
+That is the open target: the escape direction, which is also the one trained
+output that measured badly (69.7° error, chance is 90°).
+
+---
+
 ## v0 — what the descending population can even say
 
 Before wiring anything to a key, 3,600 frames were logged with the fly watching

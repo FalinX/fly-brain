@@ -24,11 +24,18 @@ DATA = os.environ.get("FLY_DATA", os.path.expanduser("~/fly-data"))
 
 # --------------------------------------------------------------- baseline
 class ScriptPilot:
-    """Three rules: face the nearest zombie, shoot it, walk away if it is close."""
-    name = "script"
+    """Three rules: face the nearest zombie, shoot it, walk away if it is close.
 
-    def __init__(self, turn_rate=6.5):
+    `barrel_gate=True` adds the same line-of-fire check v7 uses, so the
+    baseline can be compared against a fly that has one. Without it the script
+    shoots its own barrels and several runs end that way, which flatters the
+    fly.
+    """
+
+    def __init__(self, turn_rate=6.5, barrel_gate=False):
         self.turn_rate = turn_rate
+        self.barrel_gate = barrel_gate
+        self.name = "script+barrel" if barrel_gate else "script"
 
     def act(self, obs):
         zs = obs["zombies"]
@@ -38,7 +45,16 @@ class ScriptPilot:
         turn = max(-self.turn_rate, min(self.turn_rate, z["rel"] * 6.0))
         aimed = abs(z["rel"]) < 0.22
         back = 1.0 if z["dist"] < 150 else 0.0
-        return {"move": (-back, 0.0), "turn": turn, "fire": aimed, "swap": False}
+        fire = aimed
+        if fire and self.barrel_gate:
+            spread = WEAPONS[obs["self"].weapon].spread
+            for b in obs["barrels"]:
+                if b["dist"] > 520 or abs(b["rel"]) > 1.2:
+                    continue
+                if b["dist"] * abs(math.sin(b["rel"])) < 11.0 + b["dist"] * spread + 6.0:
+                    fire = False
+                    break
+        return {"move": (-back, 0.0), "turn": turn, "fire": fire, "swap": False}
 
 
 # --------------------------------------------------------------- human
