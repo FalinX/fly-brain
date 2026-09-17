@@ -166,6 +166,40 @@ VERSIONS = [
         "barrel_gate": "tight",
         "escape_mode": "hybrid",
     },
+    {
+        "id": "v11",
+        "label": "v11 · aim fitted flat over bearing",
+        "encoder": "retino",
+        "readout": "readout_v11.npz",
+        "headline": "the resampling that worked for escape, applied to aim",
+        "note": "v10's lesson was that readouts are fitted on data dominated by "
+                "frames where the answer does not matter. Applying the same fix "
+                "to aim — resample until every bearing band is equally "
+                "represented — wrecks the only band that decides kills: error "
+                "when the target is already near the centre goes 22.7° to "
+                "59.6°. Kept as the control that shows the v10 lesson is not a "
+                "general rule.",
+        "score": "offline only — 59.6° in the band that matters, not run",
+        "barrel_gate": "tight",
+        "escape_mode": "hand",
+    },
+    {
+        "id": "v12",
+        "label": "v12 · aim weighted toward the centre",
+        "encoder": "retino",
+        "readout": "readout_v12.npz",
+        "headline": "precision where a shot lands or misses",
+        "note": "The opposite resampling. A shot only connects when the target "
+                "is already near the centre, so the fit is weighted toward "
+                "those frames instead of away from them. Error in the 0–0.15 "
+                "rad band goes 22.7° to 5.5°, four times sharper, at the cost "
+                "of bearings past 0.9 rad where the turn is clipped anyway. "
+                "Side-correct is unchanged at 79.0%, so it still turns the "
+                "right way. Everything except aim is byte-identical to v7.",
+        "score": "measuring",
+        "barrel_gate": "tight",
+        "escape_mode": "hand",
+    },
 ]
 
 # What `server.py` and `play.py` start on when no version is named. Not the
