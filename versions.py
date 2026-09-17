@@ -145,6 +145,27 @@ VERSIONS = [
         "barrel_gate": "tight",
         "escape_mode": "hand",
     },
+    {
+        "id": "v10",
+        "label": "v10 · escape retrained on crowds",
+        "encoder": "retino",
+        "readout": "readout_v10.npz",
+        "headline": "uses the trained escape direction only when surrounded",
+        "note": "The survival runs showed v7 dying to zombie contact from wave "
+                "4 on, with an escape rule that reverses away from whatever it "
+                "faces — perfect against one attacker, useless inside a ring. "
+                "The trained heading that was supposed to fix that measured "
+                "69.7° off, because a run started at wave 1 is only 12% "
+                "crowded frames and the fit optimised the easy majority. "
+                "Refitted with half the data collected from wave 5 and 7 "
+                "starts and crowded frames oversampled to 50%: 63.3° → 54.2° "
+                "when surrounded, unchanged on an open board. Used only when "
+                "3+ zombies are inside 250 px; aim, flee and the barrel check "
+                "are byte-identical to v7.",
+        "score": "136.0 s survival — 20 s worse than v7, kept as a negative result",
+        "barrel_gate": "tight",
+        "escape_mode": "hybrid",
+    },
 ]
 
 # What `server.py` and `play.py` start on when no version is named. Not the

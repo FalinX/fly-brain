@@ -92,10 +92,13 @@ class Player:
 
 # ---------------------------------------------------------------- world
 class Game:
-    def __init__(self, n_players: int = 2, seed: int = 7):
+    def __init__(self, n_players: int = 2, seed: int = 7, start_wave: int = 0):
+        """start_wave lets a collector drop straight into a crowded board.
+        Escaping only decides anything once there are enough zombies to be
+        surrounded by, and those frames are rare if every run starts at wave 1."""
         self.rng = random.Random(seed)
         self.t = 0.0
-        self.wave = 0
+        self.wave = max(0, start_wave - 1)
         self.wave_timer = 2.0
         self.spawn_queue = 0
         self.spawn_cd = 0.0

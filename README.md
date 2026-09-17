@@ -290,10 +290,10 @@ encoder or the targets.
 * ~~DAgger round 2~~ — done, and it bought nothing (v8 above). If anyone tries
   round 3, the interesting question is whether a target other than aim is what
   is saturating.
-* **Escape heading is still weak** at 69.7°. Either it needs its own DAgger
-  rounds on states where escaping actually matters, or the descending
-  population genuinely does not carry a usable direction and the hand rule is
-  the honest answer.
+* ~~Escape heading~~ — tried (v10). Rebalancing the training set onto crowded
+  frames cut the error from 63.3° to 54.2° where it matters, and cost 20 s of
+  survival in the game. A continuous blend instead of v10's hard switch at
+  three nearby zombies is the one variant not tested.
 * ~~Ensemble voting~~ — measured (v9 above), no effect on the trained readout.
   The open version of this question is whether it helps **v1**, which reads
   four cells and should be noise-limited in a way v7 is not.

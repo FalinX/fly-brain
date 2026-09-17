@@ -30,6 +30,7 @@ neurons, 25,582,938 synapses, zero trained weights. What changes is the
 | **v7** ⭐ | retinotopic | aim + flee | reverse | true geometry | 89.9 ± 0.2 | 43.8 ± 2.8 | 31.7% | 11/12 |
 | v8 | retinotopic | + DAgger round 2 | reverse | true geometry | 86.7 ± 11.1 | 41.0 ± 8.6 | 29.1% | 11/12 |
 | v9 | retinotopic | 2 copies voting | reverse | true geometry | 90.0 ± 0.0 | 43.0 ± 4.6 | 31.8% | 12/12 |
+| v10 | retinotopic | escape refit on crowds | hybrid | true geometry | _survival: 136.0 ± 35.1 s, 20 s worse than v7_ | | | |
 | _script_ | — | — | — | — | 77.0 ± 20.7 | 55.8 ± 16.6 | 58.1% | 7/12 |
 
 ---
@@ -351,6 +352,74 @@ itself a large amount of averaging. A second brain adds little on top of that.
 
 Kept as a negative result. Worth revisiting only if a future version goes back
 to reading few cells — v1 is where voting should actually pay.
+
+---
+
+## v10 — retrain the escape direction on the frames that decide runs
+
+**Config** · retino · `readout_v10.npz` · **hybrid escape** · true-geometry gate
+
+**Hypothesis.** The survival runs pinned the failure: v7 is untouched through
+wave 3, bleeds from wave 4 and dies to zombie contact, with an escape rule that
+reverses away from whatever it faces — right against one attacker, useless
+inside a ring of twenty. The trained heading meant to fix that measured 69.7°
+off. The guess was that the readout is not wrong, the *training set* is: a run
+started at wave 1 is mostly frames with nobody near, where any escape direction
+works and the label is close to arbitrary.
+
+That guess was measurable, and it held:
+
+| collection | frames with 3+ zombies inside 250 px |
+|---|---|
+| start at wave 1 | **12.4%** |
+| start at wave 5 | 59.0% |
+| start at wave 7 | 71.5% |
+
+Every readout in this project up to here was fitted on data that was ~88%
+situations where escaping does not matter.
+
+**Method.** `learn3.py`. `Game(start_wave=N)` added so collection can drop
+straight onto a crowded board; half the training data from wave 5 and 7 starts;
+crowded frames oversampled to 50% of the fit; hyper-parameters chosen on
+crowded frames only; error reported separately for crowded and open boards,
+because averaging over both is what hid this. Only `esc_sin`/`esc_cos` are
+refitted — aim, flee and the barrel readout are copied byte-for-byte from v7,
+so any change in the game is attributable.
+
+**Offline** · 6,712 held-out frames
+
+| readout | all frames | surrounded | open board |
+|---|---|---|---|
+| shipped (v7) | 66.7° | 63.3° | 68.6° |
+| balanced refit | 62.7° | **54.2°** | 67.7° |
+| chance | 90.0° | 90.0° | 90.0° |
+
+Exactly the predicted shape: better where it was targeted, unchanged elsewhere.
+
+**Result** · 24 arenas, run to death · 136.0 ± 35.1 s · wave 6.1 · 72.5 kills
+
+Paired against v7: survival **−20.5 s (t = −1.90)**, kills **−16.0 (t = −1.95)**,
+better in only 6 of 24.
+
+**Read.** The offline gain was real, targeted, and made the game worse — the
+third time in this project that an offline improvement failed to transfer, and
+the first time it actively regressed.
+
+The likely reason is that 54.2° is still bad. An escape heading wrong by 54° on
+average runs diagonally into trouble about as often as it runs out of it. The
+rule it replaced has no error in that sense: it always points directly away
+from the nearest zombie, because the fly is already facing that zombie in order
+to shoot it. **A better-on-paper direction that is still noisy loses to a crude
+one that is deterministic.**
+
+*Untested alternative explanation, stated rather than assumed away:* v10
+switches modes hard at 3 zombies inside 250 px, so the movement direction jumps
+as that threshold is crossed. A continuous blend was not tried, so a mechanical
+cause cannot be ruled out in favour of "the signal is not good enough".
+
+**Standing conclusion.** The descending population does not appear to carry
+escape direction well enough to beat reversing. Kept in the repo; `versions.py`
+still defaults to v7.
 
 ---
 

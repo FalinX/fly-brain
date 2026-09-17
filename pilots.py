@@ -447,7 +447,15 @@ class FlyPilot:
         # Untrained, it can only walk backwards along its body axis. With the
         # trained escape readout it gets a direction, which is what a real
         # escape is: aimed away from the looming stimulus, not simply reverse.
-        if self.escape_mode == "trained" and self._has("esc_sin"):
+        # "hybrid" is the honest reading of the measurements: the refitted
+        # escape readout is 54.2° off when the fly is surrounded against the
+        # shipped one's 63.3°, but on an open board it is no better than before
+        # and the reverse rule is already fine there. So use the readout only
+        # where it was trained and where the rule fails — inside a crowd.
+        use_trained = (self.escape_mode == "trained" or
+                       (self.escape_mode == "hybrid" and
+                        sum(1 for z in obs["zombies"] if z["dist"] < 250.0) >= 3))
+        if use_trained and self._has("esc_sin"):
             esc_dir = math.atan2(self._ro("esc_sin"), self._ro("esc_cos"))
             self.esc_dir = esc_dir
         else:
