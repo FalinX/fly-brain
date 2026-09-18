@@ -18,49 +18,62 @@ descending neurons are saying, and how hard each part of its brain is working.
 
 ## How long does a fly with a gun last?
 
-That is the actual question this repo exists to answer, and until the survival
-runs it could not be answered at all — every benchmark stopped at 90 s and the
-better versions hit that ceiling in nearly every arena, so the numbers were
-censored. Nothing in the game heals the player, so death is certain; only the
-timing was unknown.
+That is the question this repo exists to answer, and getting an honest number
+out of it took two corrections to the measurement before the answer meant
+anything.
 
-Run to death, 24 arenas, waves escalating without limit:
+**Correction one: the ceiling was never measured.** Every comparison for four
+versions was made against a hand-written kiter whose standoff radius, 420 px,
+was a number typed in when the file was first written and never tested.
+Sweeping it:
 
-| | survived | median | wave | kills | hit rate |
-|---|---|---|---|---|---|
-| hand-written kiter, no brain — the ceiling | 216.0 ± 57.7 s | 214.8 s | 7.9 | 113.0 | 63.2% |
-| **v13 — kiter legs, connectome eyes** | **197.4 ± 47.0 s** | 201.3 s | 7.9 | 110.0 | 42.7% |
-| v7 — connectome, reverse-away movement | 156.5 ± 40.9 s | 147.8 s | 6.9 | 88.5 | 41.1% |
-| 3-rule script, same barrel check | 104.4 ± 29.5 s | 105.2 s | 5.5 | 60.4 | 66.2% |
-| the same kiter, never shooting | 114.9 ± 10.6 s | 114.2 s | **1.0** | 0.0 | — |
+| kiter standoff | survived | wave | kills |
+|---|---|---|---|
+| 130 px | **1197 ± 344 s** | 21.9 | 715.6 |
+| 200 px | 440.7 ± 109.3 s | 13.1 | 272.8 |
+| 420 px ← used as "the ceiling" | 216.0 ± 57.7 s | 7.9 | 113.0 |
+| 520 px | 183.3 ± 39.1 s | 7.3 | 95.2 |
 
-**A fly with a gun lasts about three and a quarter minutes, reaches wave 8 and
-kills 110 zombies.** Best single run 272 s, wave 10.
+The real ceiling is **5.5× higher** than the one every earlier claim was
+measured against. An unoptimised baseline is not a weak baseline, it is a
+broken ruler, and it made everything measured against it look better than it
+was.
 
-Two comparisons say what is doing the work. Against the 3-rule script it is
-**+93 s**. Against the hand-written kiter — identical legs, the only difference
-being that the kiter turns on the true bearing straight from the game while v13
-turns on a linear readout of 1,314 descending neurons — it is **−18.7 s
-(t = −0.96), statistically level**, while hitting 42.7% against the kiter's
-63.2%. Aiming two thirds as well costs nothing measurable once the movement is
-right.
+**Correction two: survival time was gameable.** The original rule advances a
+wave only once the board is clear, so a pilot that kills badly never meets a
+hard wave. A control with the connectome running but **shown nothing about the
+game** scored 413 s — as long as the sighted one — by sitting on wave 4.8
+forever with 5.3% accuracy. Waves now advance on a clock (`wave_mode="timed"`),
+so not killing means accumulating, and the metric measures what it claims to.
 
-The last row is why aim matters at all: a kiter that never fires is stuck on
-wave 1 forever, because the game only advances once the board is clear. It
-accumulates zombies until it is cornered, at 114.9 s. Killing here is crowd
-control, and it is worth 101 seconds.
+### The answer, on the honest metric
 
-How it dies, from the per-wave health log: untouched through waves 1–3
-(100 → 97 HP), bleeding from wave 4, gone by wave 6–8, and the damage is
-zombie contact (74–103 HP) rather than its own barrels (0 in 12 of 12 runs).
-Wave *N* spawns 5 + 2.6*N* zombies from every edge, and the escape rule —
-reverse away from whatever it is facing — is perfect against one attacker and
-useless against twenty.
+Timed waves, 8 arenas, run to death:
 
-    python survive.py v13             # run until it dies, 24 arenas
-    python survive.py kiter           # the no-brain ceiling
-    python survive.py kiter-nofire    # what happens when nothing dies
-    python survive.py v13 24 0        # same, with no barrels on the map
+| | survived | wave | kills | hit rate |
+|---|---|---|---|---|
+| hand-written kiter, no brain, tuned | 294.6 ± 47.9 s | 15.2 | 147.5 | 88.9% |
+| **v15e — the connectome** | **260.3 ± 29.1 s** | 13.6 | **229.8** | 53.4% |
+| the same brain, shown nothing | 160.8 ± 15.0 s | 8.6 | 48.0 | 15.9% |
+
+**A fly with a gun lasts about four and a half minutes and reaches wave 14.**
+
+Two paired comparisons, same arenas:
+
+* **against its own blind control: +99.5 s, t = +8.08, better in 8 of 8**, and
+  +181.8 kills (t = +12.43). Identical wiring, tonic, noise, readout, compute
+  and hand rules — the only difference is whether the encoder writes the game
+  into it. The connectome is worth 62% more survival and nearly five times the
+  kills. It is not decoration.
+* **against the tuned hand-written ceiling: −34.3 s, t = −1.70, not
+  significant** — 88% of the ceiling — while killing **82 more** zombies
+  (t = +5.94) at 53.4% accuracy against the kiter's 88.9%. The kiter waits for
+  clean shots; the fly takes more of them and clears more board.
+
+    python survive.py v15e 8 7 600 timed        # the number above
+    python survive.py v15-blind 8 7 600 timed   # the control that matters
+    python survive.py kiter130 8 7 600 timed    # the tuned ceiling
+    python kitersweep.py                        # where that ceiling actually is
 
 ---
 

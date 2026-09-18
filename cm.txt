@@ -1,50 +1,71 @@
-v13: make survival the objective, and find the fly was using the wrong half
+Fix two measurement errors, then measure what the connectome is actually worth
 
-Stated plainly - survive as long as possible - the numbers already on file said
-the effort had gone into the wrong half of the pilot. Three baselines run to
-death reframed it:
+Neither error was in the fly. Both were in how the project measured itself,
+and together they had been inflating every survival claim for four versions.
 
-  hand-written kiter, no brain at all   216.0 s   wave 7.9   113 kills
-  v7                                    156.5 s   wave 6.9    88 kills
-  the same kiter, never shooting        114.9 s   wave 1.0     0 kills
+1. The ceiling was a constant nobody had tested.
 
-The player moves at 185 px/s against a walker 52 and a devil 92, so nothing on
-the map can catch a mover, and v7 was not using that: a repulsion rule with no
-connectome in it beats it by 60 s and the whole gap is movement. The third row
-is the other half - a kiter that never fires is stuck on wave 1 forever,
-because the game only advances once the board is clear, so it accumulates
-zombies until cornered. Killing here is crowd control and it is worth 101 s.
+KiterPilot was written with a 420 px standoff because that seemed plausible,
+and then used as the hand-written ceiling in four straight comparisons.
+Sweeping it over 24 arenas takes eight minutes:
 
-v13 splits the job: movement by repulsion (HAND), standoff radius from DNp01
-rate (BRAIN), aim from the readout (BRAIN), trigger by line-of-fire geometry
-(HAND).
+  130 px   1197.1 +/- 344.4 s   wave 21.9   715.6 kills
+  200 px    440.7 +/- 109.3 s   wave 13.1   272.8 kills
+  420 px    216.0 +/-  57.7 s   wave  7.9   113.0 kills   <- the old ceiling
+  520 px    183.3 +/-  39.1 s   wave  7.3    95.2 kills
 
-  v13   197.4 +/- 47.0 s   wave 7.9   110.0 kills   42.7% hit
+The real ceiling is 5.5x higher, and one run in 24 was still alive at the
+1,800 s cap, so 1,197 is itself a floor. Two claims already in the notebook
+are corrected: v13 did not draw level with the hand-written ceiling and v15d
+did not beat it. They drew level with, and beat, one untested number.
 
-  v13 - v7      survival  +40.9 s  (t = +3.11)  better in 16/24
-  v13 - v7      kills     +21.5    (t = +2.22)
-  v13 - kiter   survival  -18.7 s  (t = -0.96)  level
-  v13 - kiter   kills      -3.0    (t = -0.24)  level
+2. Survival time rewarded being bad at the game.
 
-v13 and the kiter have byte-identical legs and differ only in the eyes: the
-kiter turns on the true bearing from the game, v13 on a linear readout of 1,314
-descending neurons. That readout hits 42.7% where perfect aim hits 63.2% and it
-costs nothing measurable in survival. Aim had stopped being the binding
-constraint two versions earlier and nobody had checked.
+Waves advanced only when the board was clear, so a pilot that kills badly
+never met a hard wave. v15-blind is the control that exposed it: identical
+wiring, tonic, noise, readout, frame cost and hand rules, with the encoder
+writing nothing about the game.
+
+  clear-the-board waves      survived    wave   kills    hit
+  v15e,  brain sees game      407.4 s    12.4   297.1   44.0%
+  v15-blind, sees nothing     413.5 s     4.8    47.9    5.3%
+
+Read as survival time the connectome is worth nothing. Read as anything else
+the blind pilot is failing so completely that the difficulty never rises: it
+lands 5.3% of its shots and lives out its life on wave 4.8. Game(wave_mode=
+'timed') now advances a wave every 20 s regardless, so not killing means
+accumulating.
+
+On the fixed metric, 8 arenas, run to death:
+
+  kiter 130 px, no brain, tuned   294.6 +/- 47.9 s   wave 15.2   147.5 kills   88.9%
+  v15e, the connectome            260.3 +/- 29.1 s   wave 13.6   229.8 kills   53.4%
+  the same brain, blind           160.8 +/- 15.0 s   wave  8.6    48.0 kills   15.9%
+
+  v15e - blind      survival  +99.5 s  (t = +8.08)  better in 8/8
+  v15e - blind      kills    +181.8    (t = +12.43) better in 8/8
+  v15e - kiter130   survival  -34.3 s  (t = -1.70)  not significant
+  v15e - kiter130   kills     +82.2    (t = +5.94)  better in 8/8
+
+The connectome is worth 62% more survival and 4.8x the kills against its own
+blind twin, and reaches 88% of a tuned hand-written optimum while killing 82
+more zombies than it at two thirds of its accuracy.
 
 Also in this commit:
 
-Barrels are a setting now, Game(n_barrels=...), because they were asked to be
-taken off the live map. server.py and play.py default to none; every benchmark
-table stays at 7 so it remains comparable. Measured on v7: removing them is
-worth +20.0 s of survival (t = +1.70) and +34.6 kills (t = +3.74).
-
-Contact-range behaviour measured over 9,195 frames, because it looked from the
-outside like the fly goes blind when something touches it. It does not: every
-detector sits at or near its 0.8 ceiling and it is trying to flee on 80.7% of
-those frames. What actually goes wrong is that the barrel rule gags the gun on
-40% of them and it is facing 61 degrees off the thing touching it, so a rule
-that reverses along the body axis reverses the wrong way. v13 movement does not
-depend on facing.
+  v14 / v14n   olfaction. 2,635 receptors across 53 glomeruli, well wired -
+               28,447 synapses onto the antennal-lobe projection neurons, 28%
+               of a PN input budget. At tonic 0.14 the lobe is pinned near its
+               30 Hz ceiling and left-smell cannot be told from right-smell at
+               all (AUC 0.494). Lowering tonic frees it (0.567 at 0.10, 0.671
+               at 0.07) and silences everything else. Trained with and without
+               the channel from separate collections at 0.10: smell changed
+               nothing, including the rear-detection target built for it, and
+               the tonic change itself cost 12 points of aim.
+  v15a-f       the standoff radius as a setting rather than a constant.
+  survive.py   takes a time cap and a wave mode.
+  metrics      accuracy now counts projectiles, not trigger pulls; a shotgun
+               shell is seven pellets and the old figure could exceed 100%.
+  results/     raw runs for every sweep and version.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

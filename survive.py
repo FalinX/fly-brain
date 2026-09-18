@@ -38,6 +38,10 @@ def build(vid):
         return ScriptPilot(), {"id": "script", "label": "3-rule script"}
     if vid == "kiter":
         return KiterPilot(), {"id": "kiter", "label": "hand-written kiter, no brain"}
+    if vid.startswith("kiter") and vid[5:].isdigit():
+        r = int(vid[5:])
+        return (KiterPilot(reach=r),
+                {"id": vid, "label": f"hand-written kiter, standoff {r} px"})
     if vid == "kiter-nofire":
         return (KiterPilot(shoot=False),
                 {"id": "kiter-nofire", "label": "kiter that never shoots"})
@@ -48,8 +52,8 @@ def build(vid):
     return ensemble.build(v, n=v.get("flies", 1), quiet=False), v
 
 
-def run_until_death(pilot, seed, n_barrels=7):
-    g = Game(n_players=1, seed=seed, n_barrels=n_barrels)
+def run_until_death(pilot, seed, n_barrels=7, cap=None, wave_mode="clear"):
+    g = Game(n_players=1, seed=seed, n_barrels=n_barrels, wave_mode=wave_mode)
     if hasattr(pilot, "reset"):
         pilot.reset()
     elif hasattr(pilot, "v"):
@@ -61,7 +65,8 @@ def run_until_death(pilot, seed, n_barrels=7):
         pilot.fleeing = False
     hp_at = {}
     times = []
-    while not g.over and g.t < HARD_CAP:
+    limit = HARD_CAP if cap is None else cap
+    while not g.over and g.t < limit:
         obs = g.observe(0)
         t0 = time.perf_counter()
         cmd = pilot.act(obs)
@@ -76,24 +81,29 @@ def run_until_death(pilot, seed, n_barrels=7):
     p = g.players[0]
     return {"seed": seed, "survived": round(g.t, 1), "wave": g.wave,
             "kills": p.kills, "score": p.score,
-            "acc": round(100 * p.hits / max(1, p.shots), 1),
+            "acc": round(100 * p.hits / max(1, p.pellets), 1),
+            "acc_per_pull": round(100 * p.hits / max(1, p.shots), 1),
+            "pellets": p.pellets,
             "dmg_barrel": round(p.dmg_barrel), "dmg_contact": round(p.dmg_contact),
             "barrel_shots": p.barrel_shots,
             "hp_entering_wave": hp_at,
             "ms_med": round(1000 * float(np.median(times)), 2),
-            "capped": g.t >= HARD_CAP}
+            "capped": g.t >= limit}
 
 
 if __name__ == "__main__":
     vid = sys.argv[1] if len(sys.argv) > 1 else "v7"
     n = int(sys.argv[2]) if len(sys.argv) > 2 else len(SEEDS)
     nb = int(sys.argv[3]) if len(sys.argv) > 3 else 7
+    if len(sys.argv) > 4:
+        HARD_CAP = float(sys.argv[4])
+    wave_mode = sys.argv[5] if len(sys.argv) > 5 else "clear"
     pilot, meta = build(vid)
     seeds = SEEDS[:n]
     rows = []
     t0 = time.time()
     for sd in seeds:
-        r = run_until_death(pilot, sd, nb)
+        r = run_until_death(pilot, sd, nb, HARD_CAP, wave_mode)
         rows.append(r)
         print(f"seed {sd:3d}  {r['survived']:7.1f}s  wave {r['wave']:2d}  "
               f"{r['kills']:4d} kills  {r['acc']:5.1f}% acc  "
@@ -108,9 +118,10 @@ if __name__ == "__main__":
           f"   best {g('survived').max():.1f} s   worst {g('survived').min():.1f} s")
 
     os.makedirs("results", exist_ok=True)
-    out = (f"results/survival_{meta['id']}.json" if nb == 7
-           else f"results/survival_{meta['id']}_b{nb}.json")
+    tag = ("" if nb == 7 else f"_b{nb}") + ("" if wave_mode == "clear" else "_timed")
+    out = f"results/survival_{meta['id']}{tag}.json"
     json.dump({"version": meta["id"], "label": meta.get("label", meta["id"]),
                "mode": "until death", "hard_cap_s": HARD_CAP, "n_barrels": nb,
+               "wave_mode": wave_mode,
                "seeds": seeds, "runs": rows}, open(out, "w"), indent=1)
     print("wrote", out)

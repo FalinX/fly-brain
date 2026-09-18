@@ -90,6 +90,10 @@ def build(version, n=2, quiet=False):
                     barrel_gate=version.get("barrel_gate", "none"),
                     escape_mode=version.get("escape_mode", "hand"),
                     move_mode=version.get("move_mode", "reverse"),
+                    tonic20=version.get("tonic20"),
+                    olfaction=version.get("olfaction", False),
+                    reach=version.get("reach", (260.0, 26.0)),
+                    blind=version.get("blind", False),
                     label=version["id"], quiet=quiet)
     if n <= 1:
         return base

@@ -115,6 +115,9 @@ class Session:
             fly.barrel_gate = version.get("barrel_gate", "none")
             fly.escape_mode = version.get("escape_mode", "hand")
             fly.move_mode = version.get("move_mode", "reverse")
+            fly.olfaction = version.get("olfaction", False)
+            fly.reach_base, fly.reach_gain = version.get("reach", (260.0, 26.0))
+            fly.blind = version.get("blind", False)
             if version["readout"]:
                 r = np.load(os.path.join(HERE, version["readout"]))
                 fly.ro = {k: r[k] for k in r.files}

@@ -75,7 +75,8 @@ class Player:
     cd: float = 0.0
     score: int = 0
     kills: int = 0
-    shots: int = 0
+    shots: int = 0          # trigger pulls
+    pellets: int = 0        # projectiles actually fired; a shotgun shell is 7
     hits: int = 0
     dmg_barrel: float = 0.0     # damage taken from barrel blasts
     dmg_contact: float = 0.0    # damage taken from zombies touching it
@@ -93,7 +94,8 @@ class Player:
 # ---------------------------------------------------------------- world
 class Game:
     def __init__(self, n_players: int = 2, seed: int = 7, start_wave: int = 0,
-                 n_barrels: int = 7):
+                 n_barrels: int = 7, wave_mode: str = "clear",
+                 wave_every: float = 20.0):
         """start_wave lets a collector drop straight into a crowded board.
         Escaping only decides anything once there are enough zombies to be
         surrounded by, and those frames are rare if every run starts at wave 1."""
@@ -113,6 +115,16 @@ class Game:
         self.booms: list[Boom] = []
         self.over = False
         self.n_barrels = n_barrels
+        # "clear": the next wave waits until the board is empty. That is the
+        # original rule and it makes survival time gameable - a pilot that
+        # kills badly never advances and so never meets a hard wave. A blind
+        # brain scored 413 s that way, on wave 4.8, against a sighted one's
+        # 407 s on wave 12.4.
+        # "timed": waves arrive on the clock whether or not the last one is
+        # dead, so not killing means accumulating. Survival time then means
+        # what it is supposed to mean.
+        self.wave_mode = wave_mode
+        self.wave_every = wave_every
         self._seed_barrels()
 
     # ------------------------------------------------------------ setup
@@ -184,7 +196,12 @@ class Game:
         self.t += DT
 
         # -- waves
-        if self.spawn_queue <= 0 and not self.zombies:
+        if self.wave_mode == "timed":
+            self.wave_timer -= DT
+            if self.wave_timer <= 0:
+                self._start_wave()
+                self.wave_timer = self.wave_every
+        elif self.spawn_queue <= 0 and not self.zombies:
             self.wave_timer -= DT
             if self.wave_timer <= 0:
                 self._start_wave()
@@ -223,6 +240,7 @@ class Game:
                 w = WEAPONS[p.weapon]
                 p.cd = w.cooldown
                 p.shots += 1
+                p.pellets += w.pellets
                 for _ in range(w.pellets):
                     a = p.aim + self.rng.uniform(-w.spread, w.spread)
                     self.bullets.append(Bullet(

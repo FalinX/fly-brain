@@ -513,6 +513,86 @@ does not depend on facing at all, which is part of why it works.
 
 ---
 
+## The two measurement errors, and the control that settled it
+
+Two things had to be fixed before any survival number meant anything, and both
+were mistakes in how the project measured itself rather than in the fly.
+
+### The ceiling was a number nobody had tested
+
+`KiterPilot` was written with a standoff radius of 420 px because that was a
+plausible first guess, and then used as "the hand-written ceiling" in four
+straight comparisons. Sweeping it over 24 arenas takes eight minutes:
+
+| standoff | survived | median | hit cap | wave | kills | hit rate |
+|---|---|---|---|---|---|---|
+| 100 px | 1158.2 ± 314.6 s | 1179.1 | 1/24 | 22.4 | 738.4 | 93.2% |
+| **130 px** | **1197.1 ± 344.4 s** | 1207.5 | 1/24 | 21.9 | 715.6 | 90.6% |
+| 160 px | 734.3 ± 210.1 s | 736.8 | 0/24 | 17.2 | 457.9 | 87.4% |
+| 200 px | 440.7 ± 109.3 s | 435.1 | 0/24 | 13.1 | 272.8 | 83.0% |
+| 240 px | 337.2 ± 77.0 s | 325.2 | 0/24 | 11.0 | 198.4 | 77.6% |
+| 280 px | 269.5 ± 71.2 s | 267.5 | 0/24 | 9.4 | 152.5 | 73.1% |
+| 330 px | 221.2 ± 45.0 s | 208.2 | 0/24 | 8.2 | 119.4 | 68.8% |
+| 420 px | 216.0 ± 57.7 s | 214.8 | 0/24 | 7.9 | 113.0 | 63.2% |
+| 520 px | 183.3 ± 39.1 s | 181.8 | 0/24 | 7.3 | 95.2 | 60.1% |
+
+The ceiling is 5.5× what it was taken to be, and one run in 24 was still alive
+at the 1,800 s safety cap, so even 1,197 s is a floor. **Two earlier claims in
+this notebook were wrong and are corrected here: v13 did not "draw level with
+the hand-written ceiling", and v15d did not "beat" it.** They drew level with,
+and beat, one untested constant.
+
+Closer is better because killing clears the board while distance only delays,
+and short bullet flights need no lead — accuracy runs from 60.1% at 520 px to
+93.2% at 100 px.
+
+### Survival time rewarded being bad at the game
+
+The original wave rule advances only when the board is empty. A pilot that
+kills badly therefore never advances, and never meets a hard wave.
+
+`v15-blind` is the control: identical wiring, tonic, noise, readout, frame cost
+and hand rules, with the encoder writing **nothing** about the game, so the
+readout reads the brain talking to itself.
+
+| clear-the-board waves | survived | wave | kills | hit rate |
+|---|---|---|---|---|
+| v15e, brain sees the game | 407.4 ± 234.9 s | 12.4 | 297.1 | 44.0% |
+| v15-blind, brain sees nothing | 413.5 ± 112.4 s | 4.8 | 47.9 | 5.3% |
+
+Read as survival time, the connectome is worth nothing. Read as anything else,
+the blind pilot is failing so thoroughly that the difficulty never rises: it
+sprays, lands 5.3%, kills just enough not to be swarmed, and lives out its life
+on wave 4.8 while the sighted one is fighting wave 12.
+
+That is Goodhart in a form worth remembering: **a metric whose conditions the
+subject controls is not a metric.** `wave_mode="timed"` advances a wave every
+20 s regardless, so not killing means accumulating.
+
+### The answer on the fixed metric
+
+Timed waves, 8 arenas, run to death:
+
+| | survived | wave | kills | hit rate |
+|---|---|---|---|---|
+| kiter 130 px, no brain, tuned | 294.6 ± 47.9 s | 15.2 | 147.5 | 88.9% |
+| **v15e, the connectome** | **260.3 ± 29.1 s** | 13.6 | **229.8** | 53.4% |
+| the same brain, blind | 160.8 ± 15.0 s | 8.6 | 48.0 | 15.9% |
+
+| paired | difference | t | better in |
+|---|---|---|---|
+| v15e − blind, survival | **+99.5 s** | **+8.08** | 8/8 |
+| v15e − blind, kills | +181.8 | +12.43 | 8/8 |
+| v15e − kiter130, survival | −34.3 s | −1.70 | 2/8 |
+| v15e − kiter130, kills | **+82.2** | **+5.94** | 8/8 |
+
+The connectome is worth 62% more survival and 4.8× the kills against its own
+blind twin, and reaches 88% of a tuned hand-written optimum while killing 82
+more zombies than it at two thirds of its accuracy. The kiter waits for clean
+shots; the fly takes more of them.
+
+---
+
 ## Running notes
 
 * **Frame cost scales with competence.** 9–12 ms when it dies at wave 3, 16–21

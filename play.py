@@ -55,7 +55,11 @@ def make_pilot(kind):
         return FlyPilot(readout=v["readout"], encoder=v["encoder"],
                         barrel_gate=v.get("barrel_gate", "none"),
                         escape_mode=v.get("escape_mode", "hand"),
-                        move_mode=v.get("move_mode", "reverse"), label=v["id"])
+                        move_mode=v.get("move_mode", "reverse"),
+                        tonic20=v.get("tonic20"),
+                        olfaction=v.get("olfaction", False),
+                        reach=v.get("reach", (260.0, 26.0)),
+                        blind=v.get("blind", False), label=v["id"])
     if kind == "script":
         return ScriptPilot()
     if kind == "human":

@@ -71,9 +71,12 @@ class KiterPilot:
     """
     name = "kiter"
 
-    def __init__(self, barrel_gate=True, shoot=True):
+    def __init__(self, barrel_gate=True, shoot=True, reach=420.0):
         self.barrel_gate = barrel_gate
         self.shoot = shoot
+        # how far out a zombie still pushes. The sweep over this is what
+        # establishes the real ceiling; 420 was only ever a first guess.
+        self.reach = float(reach)
 
     def act(self, obs):
         from game import ARENA_W, ARENA_H, WALL
@@ -81,8 +84,8 @@ class KiterPilot:
         zs = obs["zombies"]
         vx = vy = 0.0
         for z in zs:
-            if z["dist"] < 420:
-                w = (420.0 - z["dist"]) / 420.0
+            if z["dist"] < self.reach:
+                w = (self.reach - z["dist"]) / self.reach
                 w = w * w * (1.6 if z["kind"] == "devil" else 1.0)
                 vx -= math.cos(z["rel"]) * w
                 vy -= math.sin(z["rel"]) * w
@@ -168,7 +171,9 @@ class FlyPilot:
 
     def __init__(self, dt=DT, seed=64, window=9, data=DATA, quiet=False,
                  readout=None, encoder='retino', label=None, barrel_gate='trained',
-                 escape_mode='trained', move_mode='reverse'):
+                 escape_mode='trained', move_mode='reverse',
+                 tonic20=None, olfaction=False, reach=(260.0, 26.0),
+                 blind=False):
         z = np.load(os.path.join(data, "brain.npz"), allow_pickle=True)
         W = sparse.load_npz(os.path.join(data, "weights.npz")).tocsc()
         self.indptr, self.indices, self.weights = W.indptr, W.indices, W.data
@@ -219,6 +224,18 @@ class FlyPilot:
             self.bear[key] = (sgn * (0.22 + u * 2.70)).astype(np.float32)
         self.see = {}
 
+        # --- olfactory receptors for decay-related glomeruli, by antenna.
+        # DA2 is geosmin (mould), DM1/DM4/VM2 the fermentation esters, V is
+        # CO2, DL5 aversive. A rotting body is, to a fly, food — but what is
+        # useful here is that smell has no blind spot and no line of sight.
+        ROT = ("DA2", "DM1", "DM4", "VM2", "DL5", "V")
+        rot = np.zeros(len(ct), bool)
+        for gl in ROT:
+            rot |= np.array([c == "ORN_" + gl or c.startswith("ORN_" + gl + "_")
+                             for c in ct])
+        self.olf = {"rot_L": np.flatnonzero(rot & (side == "L")).astype(np.int64),
+                    "rot_R": np.flatnonzero(rot & (side == "R")).astype(np.int64)}
+
         # --- the readout groups that ship inside brain.npz
         self.grp = {k.removeprefix("group_"): z[k].astype(np.int64)
                     for k in z.files if k.startswith("group_")}
@@ -231,7 +248,13 @@ class FlyPilot:
         self.dt = dt
         self.decay = np.float32(math.exp(-dt / self.TAU))
         # brain.py rescales tonic so a silent network behaves the same at any dt
-        self.tonic = np.float32(self.TONIC_20MS * (1 - math.exp(-dt / self.TAU))
+        # tonic is the single knob that sets where the whole network sits, and
+        # different circuits want different places. At 0.14 the descending
+        # population runs at ~2 Hz and vision works, but the antennal lobe is
+        # pinned near its 30 Hz ceiling and smell cannot be read out at all.
+        # Lowering it frees olfaction and quietens everything else.
+        self.tonic20 = self.TONIC_20MS if tonic20 is None else float(tonic20)
+        self.tonic = np.float32(self.tonic20 * (1 - math.exp(-dt / self.TAU))
                                 / (1 - math.exp(-0.020 / self.TAU)))
         self.rng = np.random.default_rng(seed)
         self.v = np.zeros(self.n, np.float32)
@@ -247,6 +270,17 @@ class FlyPilot:
         self.barrel_gate = barrel_gate
         self.escape_mode = escape_mode
         self.move_mode = move_mode
+        self.olfaction = olfaction
+        # standoff radius = base + gain * DNp01 rate, in px. Lowering tonic to
+        # 0.10 quietens DNp01 and shrinks the median radius from 433 px to
+        # 347; this makes that radius settable directly instead.
+        self.reach_base, self.reach_gain = float(reach[0]), float(reach[1])
+        # blind: the connectome runs exactly as always - same tonic, same
+        # noise, same eye baseline, same cost - but the encoder writes
+        # nothing about the game into it. The readout still reads the
+        # descending population, so whatever it produces is the brain
+        # talking to itself. The control for 'does the brain matter'.
+        self.blind = blind
         self.encode_last = {}
         self.see = {}
         self.last = {"move": (0.0, 0.0), "turn": 0.0, "fire": False, "swap": False}
@@ -316,6 +350,13 @@ class FlyPilot:
         return drive
 
     def encode(self, obs):
+        if self.blind:
+            d = {k: np.zeros(len(v), np.float32) for k, v in self.det.items()}
+            if self.olfaction:
+                d["rot_L"] = np.float32(0.0)
+                d["rot_R"] = np.float32(0.0)
+            self.see = {k: 0.0 for k in d}
+            return d
         if self.encoder == "bins":
             return self.encode_bins(obs)
         return self.encode_retino(obs)
@@ -362,7 +403,24 @@ class FlyPilot:
                        drive["chase_" + side])
         for k in drive:
             np.clip(drive[k], 0.0, self.CAP, out=drive[k])
-        self.see = {k: float(v.max()) if len(v) else 0.0 for k, v in drive.items()}
+
+        if self.olfaction:
+            # Smell is not a picture. No bearing, no line of sight, no front
+            # weighting — just how much rot is on each side, falling off with
+            # distance, counting the things behind it exactly like the things
+            # in front. That is the one thing the eyes cannot do.
+            gl = gr = 0.0
+            for z in obs["zombies"]:
+                c = 1.0 / (1.0 + z["dist"] / 220.0)
+                if z["rel"] < 0:
+                    gl += c
+                else:
+                    gr += c
+            drive["rot_L"] = np.float32(min(self.CAP, 0.55 * gl))
+            drive["rot_R"] = np.float32(min(self.CAP, 0.55 * gr))
+
+        self.see = {k: (float(v.max()) if np.ndim(v) else float(v))
+                    for k, v in drive.items()}
         return drive
 
     # ------------------------------------------------------------ one step
@@ -374,12 +432,15 @@ class FlyPilot:
         self.v += current * np.float32(self.GAIN) + self.tonic
         self.v += (self.rng.random(self.n) < self.NOISE_HZ * self.dt) * np.float32(self.NOISE_AMP)
         for k, amount in drive.items():
+            tgt = self.det.get(k)
+            if tgt is None:
+                tgt = self.olf[k]
             a = np.asarray(amount, np.float32)
             if a.size == 1:
                 if float(a) > 0.0:
-                    self.v[self.det[k]] += a
+                    self.v[tgt] += a
             elif a.any():
-                self.v[self.det[k]] += a
+                self.v[tgt] += a
         fired = np.flatnonzero(self.v >= 1.0)
         self.v[fired] = 0.0
         self.fired = fired.astype(np.int64)
@@ -528,7 +589,7 @@ class FlyPilot:
         if self.move_mode == "kite":
             # BRAIN sets the radius: quiet DNp01 means hold a loose ring, a
             # loud one means push everything further away
-            reach = 260.0 + 26.0 * min(esc, 12.0)
+            reach = self.reach_base + self.reach_gain * min(esc, 12.0)
             vx = vy = 0.0
             for z in obs["zombies"]:
                 if z["dist"] < reach:
