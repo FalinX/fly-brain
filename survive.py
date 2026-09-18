@@ -22,6 +22,7 @@ import numpy as np
 
 import versions
 import ensemble
+import game as gamemod
 from game import Game, DT
 from pilots import ScriptPilot, KiterPilot
 
@@ -98,6 +99,11 @@ if __name__ == "__main__":
     if len(sys.argv) > 4:
         HARD_CAP = float(sys.argv[4])
     wave_mode = sys.argv[5] if len(sys.argv) > 5 else "clear"
+    arena = sys.argv[6] if len(sys.argv) > 6 else ""
+    if arena:
+        w, h = (float(x) for x in arena.lower().split("x"))
+        gamemod.set_arena(w, h)
+        print(f"arena {w:.0f}x{h:.0f}")
     pilot, meta = build(vid)
     seeds = SEEDS[:n]
     rows = []
@@ -118,10 +124,12 @@ if __name__ == "__main__":
           f"   best {g('survived').max():.1f} s   worst {g('survived').min():.1f} s")
 
     os.makedirs("results", exist_ok=True)
-    tag = ("" if nb == 7 else f"_b{nb}") + ("" if wave_mode == "clear" else "_timed")
+    tag = (("" if nb == 7 else f"_b{nb}") + ("" if wave_mode == "clear" else "_timed")
+           + ("" if not arena else f"_{arena}"))
     out = f"results/survival_{meta['id']}{tag}.json"
     json.dump({"version": meta["id"], "label": meta.get("label", meta["id"]),
                "mode": "until death", "hard_cap_s": HARD_CAP, "n_barrels": nb,
                "wave_mode": wave_mode,
+               "arena": [gamemod.ARENA_W, gamemod.ARENA_H],
                "seeds": seeds, "runs": rows}, open(out, "w"), indent=1)
     print("wrote", out)

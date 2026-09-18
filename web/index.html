@@ -147,6 +147,52 @@ kbd{
   padding:1px 4px;color:var(--ink);
 }
 
+/* ---------------- results drawer ---------------- */
+#rbtn{background:#121822;color:var(--teal);border-color:#1f3b38}
+#rbtn:hover{border-color:var(--teal)}
+#drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(780px,96vw);z-index:40;
+  background:#0a0d13;border-left:1px solid var(--edge);
+  transform:translateX(102%);transition:transform .22s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;box-shadow:-24px 0 60px rgba(0,0,0,.55);
+}
+#drawer.open{transform:none}
+#scrim{position:fixed;inset:0;z-index:39;background:rgba(4,6,9,.55);
+  opacity:0;pointer-events:none;transition:opacity .22s}
+#scrim.open{opacity:1;pointer-events:auto}
+.dhead{display:flex;align-items:baseline;gap:12px;padding:14px 18px;
+  border-bottom:1px solid var(--edge)}
+.dhead h2{font-family:'Martian Mono',monospace;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase}
+.dhead .sub{font-size:10.5px;color:var(--dim);flex:1;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.dbody{overflow:auto;padding:14px 18px 22px}
+.dsec{font-family:'Martian Mono',monospace;font-size:8.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--dim);margin:18px 0 8px}
+.dsec:first-child{margin-top:0}
+table.res{width:100%;border-collapse:collapse;font-size:11px}
+table.res th{font-family:'Martian Mono',monospace;font-size:8px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);text-align:right;font-weight:400;
+  padding:0 0 6px 10px;border-bottom:1px solid var(--edge);white-space:nowrap}
+table.res th:first-child,table.res td:first-child{text-align:left;padding-left:0}
+table.res td{padding:5px 0 5px 10px;text-align:right;
+  border-bottom:1px solid rgba(27,34,46,.55);font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+table.res tr.cur td{background:rgba(253,224,71,.07)}
+table.res tr.cur td:first-child{box-shadow:inset 2px 0 0 var(--amber)}
+table.res .vid{font-family:'Martian Mono',monospace;font-size:10px;color:var(--ink)}
+table.res .hl{color:var(--ink);font-weight:600}
+table.res .dim{color:var(--dim)}
+table.res .best{color:var(--teal)}
+.cfg{font-size:9.5px;color:#66718a;margin-top:1px;white-space:normal}
+.dnote{font-size:10.5px;color:var(--dim);line-height:1.55;margin-top:14px;
+  border-top:1px solid var(--edge);padding-top:12px}
+.dnote b{color:var(--amber)}
+@media (max-width:640px){
+  #drawer{width:100vw}
+  table.res th:nth-child(4),table.res td:nth-child(4){display:none}
+}
+
 /* ---------------- narrow ----------------
    The pane this runs in is often far from desktop width. Below 1100px the
    arena and the connectome stack instead of sitting side by side, and the
@@ -181,6 +227,7 @@ kbd{
   <select id="p1"><option value="human">P1 · you</option><option value="fly">P1 · fly</option><option value="script">P1 · script</option></select>
   <select id="p2"><option value="fly">P2 · fly</option><option value="none">P2 · none</option><option value="script">P2 · script</option></select>
   <select id="fv" title="which fly"></select>
+  <button id="rbtn">results</button>
   <button class="go" id="start">restart</button>
 </header>
 
@@ -219,6 +266,16 @@ kbd{
     <div class="vnote" id="vnote"></div>
   </div>
 </footer>
+
+<div id="scrim"></div>
+<aside id="drawer">
+  <div class="dhead">
+    <h2>Results</h2>
+    <span class="sub">every run on file, read from results/*.json</span>
+    <button id="dclose">close</button>
+  </div>
+  <div class="dbody" id="dbody">loading…</div>
+</aside>
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
@@ -617,6 +674,94 @@ function tick(){
   requestAnimationFrame(tick);
 }
 tick();
+
+
+/* ---------------------------------------------------------------- results */
+const fmt = (a, d) => a ? a[0].toFixed(d) + ' <span class="dim">± ' + a[1].toFixed(d) + '</span>'
+                        : '<span class="dim">—</span>';
+
+function cfgLine(m){
+  if (!m) return '';
+  const b = [];
+  if (m.encoder) b.push(m.encoder === 'retino' ? 'retinotopic' : 'one value per eye');
+  if (m.reach) b.push('standoff ' + Math.round(m.reach[0] + m.reach[1] * 6.67) + ' px');
+  if (m.move_mode === 'kite') b.push('kite');
+  if (m.escape_mode && m.escape_mode !== 'hand') b.push('escape ' + m.escape_mode);
+  if (m.tonic20) b.push('tonic ' + m.tonic20);
+  if (m.olfaction) b.push('olfaction');
+  if (m.flies > 1) b.push(m.flies + ' flies');
+  if (m.blind) b.push('BLIND');
+  return b.join(' · ');
+}
+
+function resTable(rows, cur, best){
+  let h = '<table class="res"><tr><th>version</th><th>survived s</th><th>wave</th>'
+        + '<th>kills</th><th>hit %</th><th>n</th></tr>';
+  for (const r of rows){
+    const isBest = r.s.survived && best != null && r.s.survived[0] === best;
+    h += '<tr class="' + (r.id === cur ? 'cur' : '') + '">'
+       + '<td><span class="vid">' + r.id + '</span>'
+       + (r.m ? '<div class="cfg">' + cfgLine(r.m) + '</div>' : '') + '</td>'
+       + '<td><span class="' + (isBest ? 'best' : 'hl') + '">' + fmt(r.s.survived, 1) + '</span></td>'
+       + '<td>' + fmt(r.s.wave, 1) + '</td>'
+       + '<td>' + fmt(r.s.kills, 1) + '</td>'
+       + '<td>' + fmt(r.s.acc, 1) + '</td>'
+       + '<td><span class="dim">' + r.s.n
+       + (r.s.capped ? ' · ' + r.s.capped + ' capped' : '') + '</span></td></tr>';
+  }
+  return h + '</table>';
+}
+
+async function loadResults(){
+  const d = await (await fetch('results')).json();
+  const cur = (lastFrame && lastFrame.fly && lastFrame.fly.version) || d.default;
+  let html = '';
+  const sections = [
+    ['survival (timed)', 'survival · timed waves · the honest metric'],
+    ['survival (clear)', 'survival · clear-the-board waves · gameable, kept for the record'],
+    ['90 s benchmark', '90-second benchmark · the original protocol'],
+  ];
+  for (const s2 of sections){
+    const key = s2[0], title = s2[1];
+    const ids = Object.keys(d.versions).filter(v => d.versions[v][key]);
+    ids.sort((a, b) => {
+      const ia = d.order.indexOf(a), ib = d.order.indexOf(b);
+      return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+    });
+    const rows = ids.map(v => ({id: v, m: d.meta[v] || null, s: d.versions[v][key]}));
+    if (!rows.length) continue;
+    const best = Math.max.apply(null, rows.map(r => r.s.survived ? r.s.survived[0] : -1));
+    html += '<div class="dsec">' + title + '</div>' + resTable(rows, cur, best);
+  }
+  for (const nm of Object.keys(d.sweeps || {})){
+    const block = d.sweeps[nm];
+    const rows = Object.keys(block).map(k => ({id: k, m: null, s: block[k]}));
+    if (!rows.length) continue;
+    rows.sort((a, b) => parseFloat(a.id) - parseFloat(b.id));
+    html += '<div class="dsec">' + nm + ' sweep · no connectome at all · the ceiling</div>'
+          + resTable(rows, null, null);
+  }
+  html += '<div class="dnote">Mean ± standard deviation over whole runs, read straight '
+       + 'out of the raw files, so nothing here can drift from what was measured. '
+       + '<b>Timed waves</b> advance on a clock; the clear-the-board rule lets a pilot that '
+       + 'kills badly stall the difficulty, which is how a brain shown nothing scored as long '
+       + 'as one that could see. The sweeps are the hand-written kiter with no connectome in '
+       + 'it at all — the ceiling everything else is measured against.</div>';
+  document.querySelector('#dbody').innerHTML = html;
+}
+
+const drawer = document.querySelector('#drawer'), scrim = document.querySelector('#scrim');
+function toggleDrawer(open){
+  drawer.classList.toggle('open', open);
+  scrim.classList.toggle('open', open);
+  if (open) loadResults().catch(e => {
+    document.querySelector('#dbody').textContent = 'could not load results: ' + e;
+  });
+}
+document.querySelector('#rbtn').onclick = () => toggleDrawer(!drawer.classList.contains('open'));
+document.querySelector('#dclose').onclick = () => toggleDrawer(false);
+scrim.onclick = () => toggleDrawer(false);
+addEventListener('keydown', e => { if (e.key === 'Escape') toggleDrawer(false); });
 
 $('#start').onclick = connect;
 $('#p1').onchange = connect;

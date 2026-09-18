@@ -17,6 +17,20 @@ DT = 1.0 / 30.0
 ARENA_W, ARENA_H = 960.0, 640.0
 WALL = 18.0
 
+
+def set_arena(w, h):
+    """Resize the stage.
+
+    Every pilot reads ARENA_W/ARENA_H from this module at call time, so
+    changing them here changes the world for everything at once. Arena size
+    moves the standoff optimum and the difficulty, which means it invalidates
+    every survival number measured at another size - so it is settled once,
+    before any content is added, rather than tuned later.
+    """
+    global ARENA_W, ARENA_H
+    ARENA_W, ARENA_H = float(w), float(h)
+    return ARENA_W, ARENA_H
+
 # ---------------------------------------------------------------- weapons
 @dataclass(frozen=True)
 class Weapon:

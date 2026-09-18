@@ -24,6 +24,7 @@ import math
 import os
 import time
 
+import glob
 import numpy as np
 from aiohttp import web, WSMsgType
 
@@ -274,6 +275,59 @@ async def ws_handler(request):
     return ws
 
 
+def _agg(rows, keys=("survived", "wave", "kills", "acc")):
+    out = {}
+    for k in keys:
+        v = np.array([r[k] for r in rows if r.get(k) is not None], float)
+        if len(v):
+            out[k] = [round(float(v.mean()), 1), round(float(v.std()), 1)]
+    out["n"] = len(rows)
+    out["capped"] = sum(1 for r in rows if r.get("capped"))
+    return out
+
+
+async def results(request):
+    """Everything measured, read off the raw run files rather than retyped."""
+    by_version = {}
+    for path in sorted(glob.glob(os.path.join(HERE, "results", "*.json"))):
+        name = os.path.basename(path)[:-5]
+        try:
+            d = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            continue
+        if name.startswith("survival_"):
+            vid = d.get("version", name[9:])
+            mode = d.get("wave_mode", "clear")
+            nb = d.get("n_barrels", 7)
+            tag = f"survival ({mode}" + (f", {nb} barrels" if nb != 7 else "") + ")"
+            by_version.setdefault(vid, {})[tag] = _agg(d["runs"])
+        elif name.startswith("kiter_reach") or name.startswith("arena_"):
+            continue
+        else:
+            vid = d.get("version", name)
+            by_version.setdefault(vid, {})["90 s benchmark"] = _agg(d["runs"])
+
+    meta = {}
+    for v in versions.available():
+        meta[v["id"]] = {k: v.get(k) for k in
+                         ("label", "headline", "note", "encoder", "readout",
+                          "escape_mode", "barrel_gate", "move_mode", "reach",
+                          "tonic20", "olfaction", "blind", "flies")}
+    sweeps = {}
+    for nm, f in (("kiter standoff", "kiter_reach_sweep.json"),
+                  ("arena", "arena_sweep.json")):
+        path = os.path.join(HERE, "results", f)
+        if not os.path.exists(path):
+            continue
+        d = json.load(open(path, encoding="utf-8"))
+        block = d.get("by_reach") or d.get("runs") or {}
+        sweeps[nm] = {k: _agg(v) for k, v in block.items()}
+    return web.json_response({"versions": by_version, "meta": meta,
+                              "order": [v["id"] for v in versions.available()],
+                              "sweeps": sweeps,
+                              "default": versions.get("")["id"]})
+
+
 async def index(request):
     return web.FileResponse(os.path.join(HERE, "web", "index.html"))
 
@@ -298,6 +352,7 @@ def main():
     app = web.Application()
     app.router.add_get("/", index)
     app.router.add_get("/ws", ws_handler)
+    app.router.add_get("/results", results)
     app.router.add_static("/web", os.path.join(HERE, "web"))
     print(f"\n  open  http://127.0.0.1:{a.port}\n")
     web.run_app(app, host="127.0.0.1", port=a.port, print=lambda *_: None)
