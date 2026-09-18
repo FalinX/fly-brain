@@ -85,11 +85,13 @@ def draw_arena(s, g, t, pilots=None):
         pygame.draw.rect(s, c, (b.x - 11, b.y - 11, 22, 22), border_radius=3)
         pygame.draw.rect(s, (18, 20, 26), (b.x - 11, b.y - 11, 22, 22), 2, border_radius=3)
 
+    KINDC = {"walker": ZC, "devil": DEVC, "runner": (240, 192, 64),
+             "tank": (139, 107, 214)}
     for z in g.zombies:
-        c = DEVC if z.kind == "devil" else ZC
+        c = KINDC.get(z.kind, ZC)
         if z.hit_flash > 0:
             c = (255, 255, 255)
-        r = 13 if z.kind == "walker" else 12
+        r = int(z.radius)
         pygame.draw.rect(s, c, (z.x - r, z.y - r, 2 * r, 2 * r), border_radius=2)
         pygame.draw.rect(s, (12, 14, 18), (z.x - r, z.y - r, 2 * r, 2 * r), 2, border_radius=2)
 

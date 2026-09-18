@@ -100,6 +100,9 @@ if __name__ == "__main__":
         HARD_CAP = float(sys.argv[4])
     wave_mode = sys.argv[5] if len(sys.argv) > 5 else "clear"
     arena = sys.argv[6] if len(sys.argv) > 6 else ""
+    # a label for the world the run happened in, so adding content does
+    # not silently overwrite results measured before it existed
+    tagname = sys.argv[7] if len(sys.argv) > 7 else ""
     if arena:
         w, h = (float(x) for x in arena.lower().split("x"))
         gamemod.set_arena(w, h)
@@ -125,11 +128,13 @@ if __name__ == "__main__":
 
     os.makedirs("results", exist_ok=True)
     tag = (("" if nb == 7 else f"_b{nb}") + ("" if wave_mode == "clear" else "_timed")
-           + ("" if not arena else f"_{arena}"))
+           + ("" if not arena else f"_{arena}")
+           + ("" if not tagname else f"_{tagname}"))
     out = f"results/survival_{meta['id']}{tag}.json"
     json.dump({"version": meta["id"], "label": meta.get("label", meta["id"]),
                "mode": "until death", "hard_cap_s": HARD_CAP, "n_barrels": nb,
                "wave_mode": wave_mode,
                "arena": [gamemod.ARENA_W, gamemod.ARENA_H],
+               "world": tagname or "2kinds",
                "seeds": seeds, "runs": rows}, open(out, "w"), indent=1)
     print("wrote", out)

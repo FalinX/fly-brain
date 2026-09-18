@@ -171,8 +171,9 @@ class Session:
                 "weapon": WEAPONS[p.weapon].name,
                 "pilot": self.pilots[i].name if self.pilots[i] else "-",
             } for i, p in enumerate(g.players)],
-            "z": [[round(z.x, 1), round(z.y, 1), 1 if z.kind == "devil" else 0,
-                   1 if z.hit_flash > 0 else 0] for z in g.zombies],
+            "z": [[round(z.x, 1), round(z.y, 1), z.kind,
+                   1 if z.hit_flash > 0 else 0, round(z.radius)]
+                  for z in g.zombies],
             "b": [[round(b.x, 1), round(b.y, 1), round(b.vx, 0), round(b.vy, 0)]
                   for b in g.bullets],
             "bar": [[round(b.x, 1), round(b.y, 1), 1 if b.fuse >= 0 else 0]

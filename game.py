@@ -56,12 +56,48 @@ class Bullet:
     dmg: float; life: float; owner: int
 
 
+@dataclass(frozen=True)
+class Kind:
+    name: str
+    hp: float            # at wave 1
+    hp_per_wave: float
+    speed: float
+    radius: float
+    dps: float           # contact damage per second
+    score: int
+    from_wave: int
+    share: float         # chance of being picked once it is available
+
+
+# The two originals plus two new ones at opposite ends of the same axis. The
+# encoder is deliberately NOT told about the new kinds: a runner and a tank
+# reach it through the same generic threat and looming terms as everything
+# else, so whether the readout copes is a test of what it learned rather than
+# of what it was handed.
+KINDS = {
+    "walker": Kind("walker", 38.0, 3.0, 52.0, 13.0, 16.0, 50, 1, 1.00),
+    "devil":  Kind("devil",  55.0, 4.0, 92.0, 12.0, 26.0, 120, 3, 0.45),
+    # calibrated so the four-kind roster is as hard as the two-kind one it
+    # replaces: the no-brain kiter scores 305.4 +/- 28.6 s here against
+    # 294.6 +/- 47.9 s there, which overlap. The first attempt used a 34 px/s
+    # tank, and a tank that cannot catch a 185 px/s player is not a threat, it
+    # is a bullet sponge - it made the world *easier* for anything that only
+    # runs (the blind control went 160.8 s to 257.8) while punishing the pilot
+    # that tries to clear the board. See calibrate.py.
+    "runner": Kind("runner", 26.0, 2.0, 145.0, 10.0, 14.0, 140, 5, 0.40),
+    "tank":   Kind("tank",  140.0, 12.0, 58.0, 20.0, 34.0, 260, 7, 0.12),
+}
+
+
 @dataclass
 class Zombie:
     x: float; y: float
     hp: float
     speed: float
-    kind: str            # "walker" | "devil"
+    kind: str
+    radius: float = 13.0
+    dps: float = 16.0
+    score: int = 50
     hit_flash: float = 0.0
     vx: float = 0.0
     vy: float = 0.0
@@ -167,11 +203,16 @@ class Game:
             x, y = WALL + 6, self.rng.uniform(WALL, ARENA_H - WALL)
         else:
             x, y = ARENA_W - WALL - 6, self.rng.uniform(WALL, ARENA_H - WALL)
-        devil = self.wave >= 3 and self.rng.random() < min(0.12 + 0.05 * self.wave, 0.45)
-        if devil:
-            self.zombies.append(Zombie(x, y, 55.0 + 4 * self.wave, 92.0, "devil"))
-        else:
-            self.zombies.append(Zombie(x, y, 38.0 + 3 * self.wave, 52.0, "walker"))
+        pick = "walker"
+        for name in ("tank", "runner", "devil"):
+            k = KINDS[name]
+            if self.wave >= k.from_wave and self.rng.random() < min(
+                    0.10 + 0.04 * (self.wave - k.from_wave), k.share):
+                pick = name
+                break
+        k = KINDS[pick]
+        self.zombies.append(Zombie(x, y, k.hp + k.hp_per_wave * self.wave, k.speed,
+                                   pick, k.radius, k.dps, k.score))
 
     # ------------------------------------------------------------ helpers
     def alive_players(self):
@@ -273,7 +314,8 @@ class Game:
                 continue
             hit = False
             for z in self.zombies:
-                if (z.x - b.x) ** 2 + (z.y - b.y) ** 2 <= 17 * 17:
+                rr = z.radius + 4.0
+                if (z.x - b.x) ** 2 + (z.y - b.y) ** 2 <= rr * rr:
                     z.hp -= b.dmg
                     z.hit_flash = 0.1
                     z.vx += b.vx * 0.045
@@ -324,10 +366,11 @@ class Game:
                 near = self.nearest_player(z.x, z.y)
                 if near:
                     near.kills += 1
-                    near.score += 120 if z.kind == "devil" else 50
+                    near.score += z.score
                 continue
-            if tgt is not None and (tgt.x - z.x) ** 2 + (tgt.y - z.y) ** 2 <= 24 * 24:
-                dmg = (26.0 if z.kind == "devil" else 16.0) * DT
+            reach2 = (z.radius + 11.0) ** 2
+            if tgt is not None and (tgt.x - z.x) ** 2 + (tgt.y - z.y) ** 2 <= reach2:
+                dmg = z.dps * DT
                 tgt.hp -= dmg
                 tgt.dmg_contact += dmg
                 tgt.hurt_flash = 0.18
@@ -356,7 +399,8 @@ class Game:
             dist = math.hypot(dx, dy) + 1e-6
             rel = (math.atan2(dy, dx) - p.aim + math.pi) % (2 * math.pi) - math.pi
             closing = -(dx * z.vx + dy * z.vy) / dist     # px/s, + = coming at me
-            out.append({"rel": rel, "dist": dist, "closing": closing, "kind": z.kind})
+            out.append({"rel": rel, "dist": dist, "closing": closing,
+                        "kind": z.kind, "radius": z.radius})
         bars = []
         for b in self.barrels:
             dx, dy = b.x - p.x, b.y - p.y

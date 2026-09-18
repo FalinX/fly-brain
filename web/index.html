@@ -509,10 +509,12 @@ function drawArena(f){
     g.addColorStop(1, 'rgba(255,140,60,0)');
     ax.fillStyle = g; ax.beginPath(); ax.arc(x, y, rr, 0, 7); ax.fill();
   }
-  for (const [x, y, devil, flash] of f.z){
-    ax.fillStyle = flash ? '#ffffff' : (devil ? '#e05c58' : '#76b260');
-    ax.fillRect(x-13, y-13, 26, 26);
-    ax.strokeStyle = '#0b0e13'; ax.lineWidth = 2; ax.strokeRect(x-13, y-13, 26, 26);
+  const ZC = {walker:'#76b260', devil:'#e05c58', runner:'#f0c040', tank:'#8b6bd6'};
+  for (const [x, y, kind, flash, r] of f.z){
+    const rr = r || 13;
+    ax.fillStyle = flash ? '#ffffff' : (ZC[kind] || '#76b260');
+    ax.fillRect(x-rr, y-rr, rr*2, rr*2);
+    ax.strokeStyle = '#0b0e13'; ax.lineWidth = 2; ax.strokeRect(x-rr, y-rr, rr*2, rr*2);
   }
   ax.strokeStyle = '#fff0b4'; ax.lineWidth = 2;
   for (const [x, y, vx, vy] of f.b){

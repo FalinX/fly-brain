@@ -1,0 +1,52 @@
+Step 1: new zombie kinds, and a transfer test that had to be run twice
+
+Two kinds added at opposite ends of one axis - a runner that outpaces anything
+the readout was trained against, and a tank that is slow but soaks damage. The
+encoder is deliberately NOT told about either: both reach it through the same
+generic threat and looming terms as a walker, so whether the readout copes is a
+test of what it learned rather than of what it was handed. Nothing was
+retrained.
+
+Zombie kinds are now data (game.KINDS) rather than devil checks scattered
+through the file, so hp, speed, radius, contact damage and score all come from
+one place and a new kind cannot be half-added.
+
+The first run of the test was confounded and is kept as a lesson. Adding the
+kinds also changed the overall difficulty: a tank at 34 px/s cannot catch a
+185 px/s player, so it displaced dangerous devils with bullet sponges. Every
+evasion-only pilot improved - the blind control went 160.8 s to 257.8 - while
+the pilot that tries to clear the board got worse, because tanks soak the
+bullets that keep the board empty. Read naively it said the connectome had
+stopped helping.
+
+The control caught it. A pilot shown nothing about the game cannot genuinely
+improve by 60% because the enemies got harder, and that impossibility is a more
+reliable alarm than any number about the subject itself. This is the third time
+in the project that changing two things at once produced an unreadable result,
+after v4 and v14.
+
+calibrate.py fixes difficulty rather than guessing at it: sweep candidate mixes
+and keep the one where the no-brain kiter scores what it scored before. The
+2-kind world gives it 294.6 +/- 47.9 s; the chosen mix gives 305.4 +/- 28.6.
+Tank speed 34 -> 58, share 0.22 -> 0.12, runner share 0.30 -> 0.40.
+
+With difficulty held, 8 arenas, timed waves:
+
+  v15e connectome    289.7 +/- 43.0 s   239.8 kills   55.5% hit
+  blind, no input    248.8 +/- 17.8 s    90.0 kills   19.8% hit
+  kiter130, no brain 305.4 +/- 28.6 s   171.2 kills   86.0% hit
+
+  v15e - blind      survived  +41.0 s (t +1.95, 6/8)   kills +149.8 (t +6.28)
+  v15e - kiter130   survived  -15.6 s (t -0.66)        kills  +68.5 (t +2.72)
+
+The readout transfers. Facing enemies 57% faster and 3.7x tougher than anything
+in its training set, with no retraining and no encoder change, it still adds
+150 kills over its own blind twin and lands within noise of the tuned
+hand-written optimum, at 95% of it against 88% in the world it was trained in.
+
+Stated with its limit: difficulty was matched on one pilot, which guarantees
+the kiter meets the same world and nothing more. The survival margin over blind
+narrowed from +99.5 s to +41.0 because pure evasion is a better strategy in this
+roster; kills is where the connectome contribution stays unambiguous.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
