@@ -305,7 +305,7 @@ VERSIONS = [
                 "less need no lead. This asks whether the fly can use the same "
                 "radius given that its aim is worse and it kills slower. "
                 "reach = 65 + 10 x DNp01 rate.",
-        "score": "measuring",
+        "score": "260.3 s · wave 13.6 · 229.8 kills on timed waves — best measured",
         "barrel_gate": "tight",
         "escape_mode": "hand",
         "move_mode": "kite",
@@ -345,7 +345,7 @@ VERSIONS = [
                 "nothing about the game, so the readout is reading the brain "
                 "talking to itself. Whatever v15d scores above this is what "
                 "the connectome is worth.",
-        "score": "measuring",
+        "score": "160.8 s on timed waves — the same brain shown nothing",
         "barrel_gate": "tight",
         "escape_mode": "hand",
         "move_mode": "kite",
@@ -397,7 +397,7 @@ VERSIONS = [
 # What `server.py` and `play.py` start on when no version is named. Not the
 # newest — the best measured against the current objective, staying alive.
 # v8, v9, v10, v11 and v12 record what did not work; they are not for playing.
-DEFAULT = "v13"
+DEFAULT = "v15e"
 
 
 def available():

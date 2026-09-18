@@ -39,7 +39,7 @@ REGIONS = [("optic L", "#38bdf8"), ("optic R", "#6366f1"),
            ("visual proj.", "#ef4444"), ("descending", "#fde047"),
            ("ascending", "#c084fc")]
 
-STATE = {"fly": None, "geom": None, "barrels": 0}
+STATE = {"fly": None, "geom": None, "barrels": 0, "ws": None}
 
 
 # ------------------------------------------------------------------ geometry
@@ -209,6 +209,14 @@ class Session:
 async def ws_handler(request):
     ws = web.WebSocketResponse(max_msg_size=0)
     await ws.prepare(request)
+    # One brain, one session. Every reload opens a new socket, and the old
+    # loop keeps stepping the same FlyPilot until it notices the close, so a
+    # few reloads leave several sessions sharing one brain and the game slows
+    # to a crawl. Close the previous one first.
+    prev = STATE.get("ws")
+    STATE["ws"] = ws
+    if prev is not None and not prev.closed:
+        await prev.close()
     q = request.query
     sess = Session(q.get("p1", "human"), q.get("p2", "fly"),
                    int(q.get("seed", "7")), versions.get(q.get("fly", "")),
@@ -261,6 +269,8 @@ async def ws_handler(request):
         pass
     finally:
         reader.cancel()
+        if STATE.get("ws") is ws:
+            STATE["ws"] = None
     return ws
 
 
